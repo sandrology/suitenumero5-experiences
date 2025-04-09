@@ -1,22 +1,24 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import ExperienceDetail from '../components/experiences/ExperienceDetail';
-import { mockExperiences } from '../data/mockExperiences';
+import { Experience } from '../data/mockExperiences';
 import { useToast } from "@/hooks/use-toast";
+import { getExperiences } from '../services/experienceService';
 
 const ExperiencePage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [experience, setExperience] = useState<Experience | null>(null);
   
-  const experience = mockExperiences.find(exp => exp.id === id);
-  
-  // If the experience doesn't exist or is disabled, show an error
-  React.useEffect(() => {
-    if (!experience) {
+  useEffect(() => {
+    const experiences = getExperiences();
+    const foundExperience = experiences.find(exp => exp.id === id);
+    
+    if (!foundExperience) {
       toast({
         title: "Experience Not Found",
         description: "The experience you're looking for doesn't exist.",
@@ -26,7 +28,7 @@ const ExperiencePage = () => {
       return;
     }
     
-    if (!experience.enabled) {
+    if (!foundExperience.enabled) {
       toast({
         title: "Experience Not Available",
         description: "This experience is currently not available.",
@@ -35,7 +37,9 @@ const ExperiencePage = () => {
       navigate('/');
       return;
     }
-  }, [experience, navigate, toast]);
+
+    setExperience(foundExperience);
+  }, [id, navigate, toast]);
 
   if (!experience) return null;
 

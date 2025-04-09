@@ -1,18 +1,34 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Edit, Trash, Eye, EyeOff, Plus } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import { mockExperiences, Experience } from '../../data/mockExperiences';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from "@/hooks/use-toast";
+import { 
+  initializeExperiences, 
+  getExperiences, 
+  saveExperiences, 
+  deleteExperience, 
+  toggleExperienceStatus 
+} from '../../services/experienceService';
 
 const AdminDashboard = () => {
   const { t, language } = useLanguage();
   const { toast } = useToast();
-  const [experiences, setExperiences] = useState<Experience[]>(mockExperiences);
+  const [experiences, setExperiences] = useState<Experience[]>([]);
 
-  const toggleExperienceStatus = (id: string) => {
+  // Carica le esperienze al mount
+  useEffect(() => {
+    const loadedExperiences = initializeExperiences(mockExperiences);
+    setExperiences(loadedExperiences);
+  }, []);
+
+  const handleToggleExperienceStatus = (id: string) => {
+    toggleExperienceStatus(id);
+    
+    // Aggiorna lo stato locale
     setExperiences(prevExperiences =>
       prevExperiences.map(exp =>
         exp.id === id ? { ...exp, enabled: !exp.enabled } : exp
@@ -20,20 +36,22 @@ const AdminDashboard = () => {
     );
 
     toast({
-      title: "Status Updated",
-      description: "Experience status has been updated successfully."
+      title: t('statusUpdated'),
+      description: t('statusUpdatedDesc')
     });
   };
 
-  const deleteExperience = (id: string) => {
-    // In a real app, this would be an API call
+  const handleDeleteExperience = (id: string) => {
+    deleteExperience(id);
+    
+    // Aggiorna lo stato locale
     setExperiences(prevExperiences => 
       prevExperiences.filter(exp => exp.id !== id)
     );
 
     toast({
-      title: "Experience Deleted",
-      description: "Experience has been deleted successfully."
+      title: t('experienceDeleted'),
+      description: t('experienceDeletedDesc')
     });
   };
 
@@ -56,10 +74,10 @@ const AdminDashboard = () => {
               <thead>
                 <tr className="bg-gray-100">
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">{t('title')}</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Location</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Price</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Status</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Actions</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">{t('location')}</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">{t('price')}</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">{t('status')}</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">{t('actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -85,31 +103,33 @@ const AdminDashboard = () => {
                             : 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        {experience.enabled ? 'Active' : 'Inactive'}
+                        {experience.enabled ? t('active') : t('inactive')}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-right space-x-2">
-                      <button
-                        onClick={() => toggleExperienceStatus(experience.id)}
-                        className="p-1.5 rounded-md text-gray-600 hover:bg-gray-100"
-                        title={experience.enabled ? 'Disable' : 'Enable'}
-                      >
-                        {experience.enabled ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                      <Link
-                        to={`/admin/edit/${experience.id}`}
-                        className="p-1.5 rounded-md text-blue-600 hover:bg-blue-50"
-                        title="Edit"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Link>
-                      <button
-                        onClick={() => deleteExperience(experience.id)}
-                        className="p-1.5 rounded-md text-red-600 hover:bg-red-50"
-                        title="Delete"
-                      >
-                        <Trash className="h-4 w-4" />
-                      </button>
+                    <td className="px-4 py-4 text-center">
+                      <div className="flex justify-center space-x-2">
+                        <button
+                          onClick={() => handleToggleExperienceStatus(experience.id)}
+                          className="p-1.5 rounded-md text-gray-600 hover:bg-gray-100"
+                          title={experience.enabled ? t('disable') : t('enable')}
+                        >
+                          {experience.enabled ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                        <Link
+                          to={`/admin/edit/${experience.id}`}
+                          className="p-1.5 rounded-md text-blue-600 hover:bg-blue-50"
+                          title={t('edit')}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteExperience(experience.id)}
+                          className="p-1.5 rounded-md text-red-600 hover:bg-red-50"
+                          title={t('delete')}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

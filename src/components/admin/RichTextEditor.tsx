@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Bold, Italic, List, Heading1, Heading2, Heading3, 
   AlignLeft, AlignCenter, AlignRight
@@ -17,115 +17,121 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   placeholder = 'Enter content here...'
 }) => {
   const [value, setValue] = useState(initialValue);
+  const editorRef = useRef<HTMLDivElement | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
-    setValue(newValue);
-    onChange(newValue);
-  };
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = initialValue;
+    }
+  }, [initialValue]);
 
-  const execCommand = (command: string, value?: string) => {
-    document.execCommand(command, false, value);
-  };
-
-  const applyFormat = (format: string, value?: string) => {
-    execCommand(format, value);
-    const selection = window.getSelection();
-    if (selection && selection.toString()) {
-      // This is a simplified approach - in a real editor you'd need more complex handling
-      const tag = format === 'bold' ? 'strong' : 
-                  format === 'italic' ? 'em' : 
-                  format === 'insertUnorderedList' ? 'ul' : 
-                  format === 'heading' ? `h${value}` : 'span';
-      
-      const formattedText = `<${tag}>${selection.toString()}</${tag}>`;
-      const newValue = value.replace(selection.toString(), formattedText);
+  const handleInput = () => {
+    if (editorRef.current) {
+      const newValue = editorRef.current.innerHTML;
       setValue(newValue);
       onChange(newValue);
     }
   };
 
-  // This is a simplified rich text editor for the MVP
-  // In a real app, you would use a proper rich text editor library like Quill, TinyMCE, etc.
+  const execCommand = (command: string, value: string = '') => {
+    document.execCommand(command, false, value);
+    handleInput();
+    // Mantieni il focus sull'editor dopo l'esecuzione del comando
+    if (editorRef.current) {
+      editorRef.current.focus();
+    }
+  };
+
   return (
     <div className="border rounded-md">
-      <div className="flex items-center gap-1 p-2 border-b bg-gray-50">
+      <div className="flex flex-wrap items-center gap-1 p-2 border-b bg-gray-50">
         <button
           type="button"
-          onClick={() => applyFormat('bold')}
+          onClick={() => execCommand('bold')}
           className="p-1 rounded hover:bg-gray-200"
+          title="Bold"
         >
           <Bold className="h-5 w-5" />
         </button>
         <button
           type="button"
-          onClick={() => applyFormat('italic')}
+          onClick={() => execCommand('italic')}
           className="p-1 rounded hover:bg-gray-200"
+          title="Italic"
         >
           <Italic className="h-5 w-5" />
         </button>
         <div className="h-6 w-px bg-gray-300 mx-1" />
         <button
           type="button"
-          onClick={() => applyFormat('insertUnorderedList')}
+          onClick={() => execCommand('insertUnorderedList')}
           className="p-1 rounded hover:bg-gray-200"
+          title="Bullet List"
         >
           <List className="h-5 w-5" />
         </button>
         <div className="h-6 w-px bg-gray-300 mx-1" />
         <button
           type="button"
-          onClick={() => applyFormat('heading', '1')}
+          onClick={() => execCommand('formatBlock', '<h1>')}
           className="p-1 rounded hover:bg-gray-200"
+          title="Heading 1"
         >
           <Heading1 className="h-5 w-5" />
         </button>
         <button
           type="button"
-          onClick={() => applyFormat('heading', '2')}
+          onClick={() => execCommand('formatBlock', '<h2>')}
           className="p-1 rounded hover:bg-gray-200"
+          title="Heading 2"
         >
           <Heading2 className="h-5 w-5" />
         </button>
         <button
           type="button"
-          onClick={() => applyFormat('heading', '3')}
+          onClick={() => execCommand('formatBlock', '<h3>')}
           className="p-1 rounded hover:bg-gray-200"
+          title="Heading 3"
         >
           <Heading3 className="h-5 w-5" />
         </button>
         <div className="h-6 w-px bg-gray-300 mx-1" />
         <button
           type="button"
-          onClick={() => applyFormat('justifyLeft')}
+          onClick={() => execCommand('justifyLeft')}
           className="p-1 rounded hover:bg-gray-200"
+          title="Align Left"
         >
           <AlignLeft className="h-5 w-5" />
         </button>
         <button
           type="button"
-          onClick={() => applyFormat('justifyCenter')}
+          onClick={() => execCommand('justifyCenter')}
           className="p-1 rounded hover:bg-gray-200"
+          title="Align Center"
         >
           <AlignCenter className="h-5 w-5" />
         </button>
         <button
           type="button"
-          onClick={() => applyFormat('justifyRight')}
+          onClick={() => execCommand('justifyRight')}
           className="p-1 rounded hover:bg-gray-200"
+          title="Align Right"
         >
           <AlignRight className="h-5 w-5" />
         </button>
       </div>
-      <textarea
-        value={value}
-        onChange={handleChange}
+      <div
+        ref={editorRef}
+        className="w-full p-4 min-h-[200px] focus:outline-none focus:ring-1 focus:ring-primary overflow-y-auto"
+        contentEditable
+        onInput={handleInput}
         placeholder={placeholder}
-        className="w-full p-4 min-h-[200px] resize-y focus:outline-none focus:ring-1 focus:ring-primary"
-        rows={10}
+        dangerouslySetInnerHTML={{ __html: initialValue }}
+        style={{ minHeight: '200px' }}
       />
       <div className="p-2 bg-gray-50 border-t text-xs text-gray-500">
-        You can use HTML tags for formatting. For a better experience, use the toolbar buttons.
+        Usa i pulsanti della barra degli strumenti per la formattazione. HTML è supportato.
       </div>
     </div>
   );

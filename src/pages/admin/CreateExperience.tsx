@@ -1,11 +1,13 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
 import Navbar from '../../components/layout/Navbar';
 import ExperienceForm from '../../components/admin/ExperienceForm';
 import { Experience } from '../../data/mockExperiences';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from "@/hooks/use-toast";
+import { addExperience, DEFAULT_IMAGE } from '../../services/experienceService';
 
 const CreateExperience = () => {
   const { t } = useLanguage();
@@ -13,12 +15,25 @@ const CreateExperience = () => {
   const { toast } = useToast();
 
   const handleCreateExperience = (experienceData: Partial<Experience>) => {
-    // In a real app, this would be an API call
-    console.log('Creating experience with data:', experienceData);
+    // Crea una nuova esperienza con un ID univoco
+    const newExperience: Experience = {
+      id: uuidv4(),
+      enabled: experienceData.enabled ?? true,
+      images: experienceData.images?.length ? experienceData.images : [DEFAULT_IMAGE],
+      translations: experienceData.translations!,
+      price: experienceData.price ?? 0,
+      duration: experienceData.duration ?? '',
+      location: experienceData.location ?? '',
+      rating: experienceData.rating ?? 5.0,
+      maxPeople: experienceData.maxPeople ?? 10,
+    };
+    
+    // Salva nel localStorage
+    addExperience(newExperience);
     
     toast({
-      title: "Experience Created",
-      description: "The experience has been created successfully."
+      title: t('experienceCreated'),
+      description: t('experienceCreatedDesc'),
     });
     
     // Redirect to admin dashboard

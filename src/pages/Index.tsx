@@ -1,16 +1,25 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import ExperienceCard from '../components/experiences/ExperienceCard';
-import { mockExperiences } from '../data/mockExperiences';
+import { mockExperiences, Experience } from '../data/mockExperiences';
 import { useLanguage } from '../context/LanguageContext';
+import { initializeExperiences } from '../services/experienceService';
 
 const Index = () => {
   const { t } = useLanguage();
-  const featuredExperiences = mockExperiences.filter(exp => exp.enabled).slice(0, 3);
+  const [experiences, setExperiences] = useState<Experience[]>([]);
+
+  useEffect(() => {
+    // Inizializza il localStorage con i dati di esempio se è vuoto
+    const loadedExperiences = initializeExperiences(mockExperiences);
+    setExperiences(loadedExperiences);
+  }, []);
+
+  const featuredExperiences = experiences.filter(exp => exp.enabled).slice(0, 3);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -26,7 +35,7 @@ const Index = () => {
           <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto mb-8">
             {t('discoverSubtitle')}
           </p>
-          <Link to="/experiences" className="btn-accent inline-flex items-center px-6 py-3 text-lg">
+          <Link to="/#featured" className="btn-accent inline-flex items-center px-6 py-3 text-lg">
             <span>{t('experiences')}</span>
             <ArrowRight className="ml-2 h-5 w-5" />
           </Link>
@@ -34,16 +43,9 @@ const Index = () => {
       </div>
 
       {/* Featured Experiences */}
-      <div className="container-custom py-16 md:py-24">
+      <div id="featured" className="container-custom py-16 md:py-24">
         <div className="flex justify-between items-center mb-8">
           <h2 className="heading-lg">{t('featuredExperiences')}</h2>
-          <Link 
-            to="/experiences" 
-            className="text-primary hover:text-primary-light transition-colors inline-flex items-center"
-          >
-            <span>View all</span>
-            <ArrowRight className="ml-1 h-4 w-4" />
-          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -56,7 +58,7 @@ const Index = () => {
       {/* Benefits Section */}
       <div className="bg-white py-16 md:py-24">
         <div className="container-custom">
-          <h2 className="heading-lg text-center mb-12">Why Choose Our Experiences</h2>
+          <h2 className="heading-lg text-center mb-12">{t('whyChooseUs')}</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="p-6">
@@ -65,9 +67,9 @@ const Index = () => {
                   <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-3">Unique Experiences</h3>
+              <h3 className="text-xl font-bold mb-3">{t('uniqueExperiences')}</h3>
               <p className="text-gray-600">
-                Discover hand-picked activities you won't find anywhere else
+                {t('uniqueExperiencesDesc')}
               </p>
             </div>
             
@@ -80,9 +82,9 @@ const Index = () => {
                   <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-3">Local Guides</h3>
+              <h3 className="text-xl font-bold mb-3">{t('localGuides')}</h3>
               <p className="text-gray-600">
-                Experience each destination with passionate local experts
+                {t('localGuidesDesc')}
               </p>
             </div>
             
@@ -93,9 +95,9 @@ const Index = () => {
                   <path d="M17.5 9.5 21 13l-3.5 3.5" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-3">Excellence Guaranteed</h3>
+              <h3 className="text-xl font-bold mb-3">{t('excellenceGuaranteed')}</h3>
               <p className="text-gray-600">
-                Each experience is vetted for quality and customer satisfaction
+                {t('excellenceGuaranteedDesc')}
               </p>
             </div>
           </div>

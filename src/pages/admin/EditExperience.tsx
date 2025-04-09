@@ -1,39 +1,51 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/layout/Navbar';
 import ExperienceForm from '../../components/admin/ExperienceForm';
-import { mockExperiences, Experience } from '../../data/mockExperiences';
+import { Experience } from '../../data/mockExperiences';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from "@/hooks/use-toast";
+import { getExperiences, updateExperience, DEFAULT_IMAGE } from '../../services/experienceService';
 
 const EditExperience = () => {
   const { id } = useParams<{ id: string }>();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [experience, setExperience] = useState<Experience | null>(null);
   
-  const experience = mockExperiences.find(exp => exp.id === id);
-  
-  // If the experience doesn't exist, redirect to admin dashboard
-  React.useEffect(() => {
-    if (!experience) {
+  useEffect(() => {
+    const experiences = getExperiences();
+    const foundExperience = experiences.find(exp => exp.id === id);
+    
+    if (!foundExperience) {
       toast({
-        title: "Experience Not Found",
-        description: "The experience you're trying to edit doesn't exist.",
+        title: t('experienceNotFound'),
+        description: t('experienceNotFoundDesc'),
         variant: "destructive"
       });
       navigate('/admin');
+    } else {
+      setExperience(foundExperience);
     }
-  }, [experience, navigate, toast]);
+  }, [id, navigate, toast, t]);
 
   const handleUpdateExperience = (experienceData: Partial<Experience>) => {
-    // In a real app, this would be an API call
-    console.log('Updating experience with data:', experienceData);
+    if (!experience) return;
+    
+    const updatedExperience: Experience = {
+      ...experience,
+      ...experienceData,
+      images: experienceData.images?.length ? experienceData.images : [DEFAULT_IMAGE],
+    };
+    
+    // Aggiorna nel localStorage
+    updateExperience(updatedExperience);
     
     toast({
-      title: "Experience Updated",
-      description: "The experience has been updated successfully."
+      title: t('experienceUpdated'),
+      description: t('experienceUpdatedDesc'),
     });
     
     // Redirect to admin dashboard
