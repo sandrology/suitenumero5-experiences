@@ -25,6 +25,13 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     }
   }, [initialValue]);
 
+  useEffect(() => {
+    // Imposta l'attributo data-placeholder utilizzando un data attribute invece di placeholder diretto
+    if (editorRef.current) {
+      editorRef.current.setAttribute('data-placeholder', placeholder);
+    }
+  }, [placeholder]);
+
   const handleInput = () => {
     if (editorRef.current) {
       const newValue = editorRef.current.innerHTML;
@@ -123,10 +130,10 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
       </div>
       <div
         ref={editorRef}
-        className="w-full p-4 min-h-[200px] focus:outline-none focus:ring-1 focus:ring-primary overflow-y-auto"
+        className="w-full p-4 min-h-[200px] focus:outline-none focus:ring-1 focus:ring-primary overflow-y-auto empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
         contentEditable
         onInput={handleInput}
-        placeholder={placeholder}
+        data-placeholder={placeholder}
         dangerouslySetInnerHTML={{ __html: initialValue }}
         style={{ minHeight: '200px' }}
       />
