@@ -4,6 +4,7 @@ import { Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Experience } from '../../data/mockExperiences';
 import { useLanguage } from '../../context/LanguageContext';
+import { DEFAULT_IMAGE } from '../../services/experienceService';
 
 interface ExperienceCardProps {
   experience: Experience;
@@ -19,9 +20,12 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({ experience }) => {
     <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:-translate-y-1 hover:shadow-lg">
       <div className="relative h-64 overflow-hidden">
         <img 
-          src={experience.images[0]} 
+          src={experience.images && experience.images.length > 0 ? experience.images[0] : DEFAULT_IMAGE} 
           alt={translation.title} 
           className="w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = DEFAULT_IMAGE;
+          }}
         />
         <div className="absolute top-4 right-4">
           <div className="flex items-center bg-white bg-opacity-90 rounded-full px-2 py-1">

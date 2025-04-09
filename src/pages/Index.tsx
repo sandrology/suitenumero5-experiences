@@ -5,18 +5,28 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import ExperienceCard from '../components/experiences/ExperienceCard';
-import { mockExperiences, Experience } from '../data/mockExperiences';
+import { Experience } from '../data/mockExperiences';
 import { useLanguage } from '../context/LanguageContext';
-import { initializeExperiences } from '../services/experienceService';
+import { getExperiences } from '../services/experienceService';
 
 const Index = () => {
   const { t } = useLanguage();
   const [experiences, setExperiences] = useState<Experience[]>([]);
 
   useEffect(() => {
-    // Inizializza il localStorage con i dati di esempio se è vuoto
-    const loadedExperiences = initializeExperiences(mockExperiences);
+    // Get experiences from localStorage directly
+    const loadedExperiences = getExperiences();
     setExperiences(loadedExperiences);
+    
+    // Add an event listener to update experiences when they change in other tabs
+    const handleStorageChange = () => {
+      setExperiences(getExperiences());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const featuredExperiences = experiences.filter(exp => exp.enabled).slice(0, 3);
@@ -49,9 +59,15 @@ const Index = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredExperiences.map(experience => (
-            <ExperienceCard key={experience.id} experience={experience} />
-          ))}
+          {featuredExperiences.length > 0 ? (
+            featuredExperiences.map(experience => (
+              <ExperienceCard key={experience.id} experience={experience} />
+            ))
+          ) : (
+            <div className="col-span-3 text-center py-12">
+              <p className="text-gray-500">{t('noExperiences')}</p>
+            </div>
+          )}
         </div>
       </div>
 
