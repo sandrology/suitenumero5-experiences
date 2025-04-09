@@ -13,22 +13,41 @@ const Index = () => {
   const { t } = useLanguage();
   const [experiences, setExperiences] = useState<Experience[]>([]);
 
-  useEffect(() => {
-    // Get experiences from localStorage directly
+  // Function to load experiences from localStorage
+  const loadExperiences = () => {
     const loadedExperiences = getExperiences();
     setExperiences(loadedExperiences);
+    console.log('Loaded experiences:', loadedExperiences);
+  };
+
+  useEffect(() => {
+    // Load experiences initially
+    loadExperiences();
     
-    // Add an event listener to update experiences when they change in other tabs
-    const handleStorageChange = () => {
-      setExperiences(getExperiences());
+    // Add event listeners for both storage changes (other tabs) and custom event (same tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'experiences_data') {
+        loadExperiences();
+      }
     };
     
+    const handleExperiencesUpdated = () => {
+      loadExperiences();
+    };
+    
+    // Listen for storage events (other tabs)
     window.addEventListener('storage', handleStorageChange);
+    
+    // Listen for custom events (same tab)
+    window.addEventListener('experiencesUpdated', handleExperiencesUpdated);
+    
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('experiencesUpdated', handleExperiencesUpdated);
     };
   }, []);
 
+  // Filter enabled experiences for the home page
   const featuredExperiences = experiences.filter(exp => exp.enabled).slice(0, 3);
 
   return (

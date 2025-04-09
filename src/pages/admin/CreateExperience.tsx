@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,7 +14,7 @@ const CreateExperience = () => {
   const { toast } = useToast();
 
   const handleCreateExperience = (experienceData: Partial<Experience>) => {
-    // Crea una nuova esperienza con un ID univoco
+    // Create a new experience with a unique ID
     const newExperience: Experience = {
       id: uuidv4(),
       enabled: experienceData.enabled ?? true,
@@ -28,8 +27,10 @@ const CreateExperience = () => {
       maxPeople: experienceData.maxPeople ?? 10,
     };
     
-    // Salva nel localStorage
+    // Save to localStorage
     addExperience(newExperience);
+    
+    console.log('Created experience:', newExperience);
     
     toast({
       title: t('experienceCreated'),

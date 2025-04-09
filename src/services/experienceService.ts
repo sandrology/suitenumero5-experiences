@@ -1,10 +1,13 @@
 
 import { Experience } from '../data/mockExperiences';
 
-// Chiave per salvare le esperienze nel localStorage
-const STORAGE_KEY = 'experiences_data';
+// Storage key for saving experiences in localStorage
+export const STORAGE_KEY = 'experiences_data';
 
-// Recupera le esperienze dal localStorage
+// Default image for experiences
+export const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&h=500";
+
+// Retrieve experiences from localStorage
 export const getExperiences = (): Experience[] => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -18,20 +21,23 @@ export const getExperiences = (): Experience[] => {
   }
 };
 
-// Salva le esperienze nel localStorage
+// Save experiences to localStorage and dispatch an event to update other tabs/components
 export const saveExperiences = (experiences: Experience[]): void => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(experiences));
+    
+    // Dispatch a custom event to notify components in the same tab
+    window.dispatchEvent(new Event('experiencesUpdated'));
   } catch (error) {
     console.error('Error saving experiences to localStorage:', error);
   }
 };
 
-// Inizializza il localStorage con i dati di esempio se vuoto
+// Initialize localStorage with sample data if empty
 export const initializeExperiences = (mockData: Experience[]): Experience[] => {
   const currentData = getExperiences();
   
-  // Se non ci sono dati nel localStorage, inizializziamo con i dati mock
+  // If there's no data in localStorage, initialize with mock data
   if (currentData.length === 0) {
     saveExperiences(mockData);
     return mockData;
@@ -40,14 +46,14 @@ export const initializeExperiences = (mockData: Experience[]): Experience[] => {
   return currentData;
 };
 
-// Aggiungi una nuova esperienza
+// Add a new experience
 export const addExperience = (experience: Experience): void => {
   const experiences = getExperiences();
   experiences.push(experience);
   saveExperiences(experiences);
 };
 
-// Aggiorna un'esperienza esistente
+// Update an existing experience
 export const updateExperience = (experience: Experience): void => {
   const experiences = getExperiences();
   const index = experiences.findIndex(exp => exp.id === experience.id);
@@ -59,7 +65,7 @@ export const updateExperience = (experience: Experience): void => {
   }
 };
 
-// Elimina un'esperienza
+// Delete an experience
 export const deleteExperience = (id: string): void => {
   const experiences = getExperiences();
   const filteredExperiences = experiences.filter(exp => exp.id !== id);
@@ -70,7 +76,7 @@ export const deleteExperience = (id: string): void => {
   }
 };
 
-// Cambia lo stato di un'esperienza (abilitata/disabilitata)
+// Toggle an experience's status (enabled/disabled)
 export const toggleExperienceStatus = (id: string): void => {
   const experiences = getExperiences();
   const index = experiences.findIndex(exp => exp.id === id);
@@ -82,11 +88,8 @@ export const toggleExperienceStatus = (id: string): void => {
   }
 };
 
-// Ottieni un'esperienza per ID
+// Get an experience by ID
 export const getExperienceById = (id: string): Experience | undefined => {
   const experiences = getExperiences();
   return experiences.find(exp => exp.id === id);
 };
-
-// Immagine di default per le esperienze
-export const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&h=500";

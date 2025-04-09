@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Edit, Trash, Eye, EyeOff, Plus } from 'lucide-react';
@@ -19,20 +18,28 @@ const AdminDashboard = () => {
   const { toast } = useToast();
   const [experiences, setExperiences] = useState<Experience[]>([]);
 
-  // Carica le esperienze al mount
-  useEffect(() => {
-    // Inizializza con i dati mock se il localStorage è vuoto
+  // Function to load experiences
+  const loadExperiences = () => {
+    // Initialize with mock data if localStorage is empty
     const loadedExperiences = initializeExperiences(mockExperiences);
     setExperiences(loadedExperiences);
+    console.log('Admin loaded experiences:', loadedExperiences);
+  };
+
+  useEffect(() => {
+    loadExperiences();
     
-    // Aggiungi un event listener per aggiornare le esperienze quando cambiano in altre schede
-    const handleStorageChange = () => {
+    // Add custom event listener to update experiences when they change in this or other tabs
+    const handleExperiencesUpdated = () => {
       setExperiences(getExperiences());
     };
     
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('experiencesUpdated', handleExperiencesUpdated);
+    window.addEventListener('storage', () => setExperiences(getExperiences()));
+    
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('experiencesUpdated', handleExperiencesUpdated);
+      window.removeEventListener('storage', () => setExperiences(getExperiences()));
     };
   }, []);
 
