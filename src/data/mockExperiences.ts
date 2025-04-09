@@ -43,7 +43,7 @@ export const mockExperiences: Experience[] = [
       }
     },
     price: 80,
-    duration: '30 minutes',
+    duration: '33 minutes',
     location: 'Venice, Italy',
     rating: 4.8,
     maxPeople: 6
