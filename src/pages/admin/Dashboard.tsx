@@ -10,7 +10,8 @@ import {
   initializeExperiences, 
   getExperiences, 
   deleteExperience, 
-  toggleExperienceStatus 
+  toggleExperienceStatus,
+  DEFAULT_IMAGE
 } from '../../services/experienceService';
 
 const AdminDashboard = () => {
