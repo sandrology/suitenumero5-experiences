@@ -6,7 +6,7 @@ import ExperienceForm from '../../components/admin/ExperienceForm';
 import { Experience } from '../../data/mockExperiences';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from "@/hooks/use-toast";
-import { getExperiences, updateExperience, DEFAULT_IMAGE } from '../../services/experienceService';
+import { getExperienceById, updateExperience, DEFAULT_IMAGE } from '../../services/experienceService';
 
 const EditExperience = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,29 +14,33 @@ const EditExperience = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [experience, setExperience] = useState<Experience | null>(null);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    const experiences = getExperiences();
-    const foundExperience = experiences.find(exp => exp.id === id);
-    
-    if (!foundExperience) {
-      toast({
-        title: t('experienceNotFound'),
-        description: t('experienceNotFoundDesc'),
-        variant: "destructive"
-      });
-      navigate('/admin');
-    } else {
-      setExperience(foundExperience);
+    if (id) {
+      const foundExperience = getExperienceById(id);
+      
+      if (!foundExperience) {
+        toast({
+          title: t('experienceNotFound'),
+          description: t('experienceNotFoundDesc'),
+          variant: "destructive"
+        });
+        navigate('/admin');
+      } else {
+        setExperience(foundExperience);
+      }
     }
+    setLoading(false);
   }, [id, navigate, toast, t]);
 
   const handleUpdateExperience = (experienceData: Partial<Experience>) => {
-    if (!experience) return;
+    if (!experience || !id) return;
     
     const updatedExperience: Experience = {
       ...experience,
       ...experienceData,
+      id: id, // Assicuriamo che l'ID rimanga lo stesso
       images: experienceData.images?.length ? experienceData.images : [DEFAULT_IMAGE],
     };
     
@@ -52,7 +56,38 @@ const EditExperience = () => {
     navigate('/admin');
   };
 
-  if (!experience) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navbar />
+        <main className="flex-grow container-custom py-12 flex justify-center items-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-4">{t('loading')}</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!experience) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navbar />
+        <main className="flex-grow container-custom py-12 flex justify-center items-center">
+          <div className="text-center">
+            <p className="text-xl text-red-500">{t('experienceNotFound')}</p>
+            <button 
+              className="mt-4 btn-primary"
+              onClick={() => navigate('/admin')}
+            >
+              {t('backToAdmin')}
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
