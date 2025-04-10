@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -17,7 +18,7 @@ const CreateExperience = () => {
     // Create a new experience with a unique ID
     const newExperience: Experience = {
       id: uuidv4(),
-      enabled: experienceData.enabled ?? true,
+      enabled: true, // Ensure new experiences are enabled by default
       images: experienceData.images?.length ? experienceData.images : [DEFAULT_IMAGE],
       translations: experienceData.translations!,
       price: experienceData.price ?? 0,
@@ -30,7 +31,7 @@ const CreateExperience = () => {
     // Save to localStorage
     addExperience(newExperience);
     
-    console.log('Created experience:', newExperience);
+    console.log('Created new experience:', newExperience);
     
     toast({
       title: t('experienceCreated'),

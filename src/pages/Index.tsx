@@ -12,12 +12,14 @@ import { getExperiences } from '../services/experienceService';
 const Index = () => {
   const { t } = useLanguage();
   const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Function to load experiences from localStorage
   const loadExperiences = () => {
     const loadedExperiences = getExperiences();
     setExperiences(loadedExperiences);
-    console.log('Loaded experiences:', loadedExperiences);
+    setLoading(false);
+    console.log('Home loaded experiences:', loadedExperiences);
   };
 
   useEffect(() => {
@@ -27,11 +29,13 @@ const Index = () => {
     // Add event listeners for both storage changes (other tabs) and custom event (same tab)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'experiences_data') {
+        console.log('Storage event detected in Home');
         loadExperiences();
       }
     };
     
     const handleExperiencesUpdated = () => {
+      console.log('Experiences updated event detected in Home');
       loadExperiences();
     };
     
@@ -48,7 +52,7 @@ const Index = () => {
   }, []);
 
   // Filter enabled experiences for the home page
-  const featuredExperiences = experiences.filter(exp => exp.enabled).slice(0, 3);
+  const featuredExperiences = experiences.filter(exp => exp.enabled).slice(0, 6);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -75,19 +79,35 @@ const Index = () => {
       <div id="featured" className="container-custom py-16 md:py-24">
         <div className="flex justify-between items-center mb-8">
           <h2 className="heading-lg">{t('featuredExperiences')}</h2>
+          <div className="text-sm text-gray-500">
+            {loading ? (
+              <span>{t('loading')}</span>
+            ) : (
+              <span>{featuredExperiences.length} {t('experiencesAvailable')}</span>
+            )}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredExperiences.length > 0 ? (
-            featuredExperiences.map(experience => (
-              <ExperienceCard key={experience.id} experience={experience} />
-            ))
-          ) : (
-            <div className="col-span-3 text-center py-12">
-              <p className="text-gray-500">{t('noExperiences')}</p>
-            </div>
-          )}
-        </div>
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredExperiences.length > 0 ? (
+              featuredExperiences.map(experience => (
+                <ExperienceCard key={experience.id} experience={experience} />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500">{t('noExperiences')}</p>
+                <Link to="/admin" className="btn-primary mt-4 inline-block">
+                  {t('goToAdmin')}
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Benefits Section */}

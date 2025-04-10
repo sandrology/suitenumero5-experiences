@@ -26,8 +26,11 @@ export const saveExperiences = (experiences: Experience[]): void => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(experiences));
     
-    // Dispatch a custom event to notify components in the same tab
+    // Dispatch both a storage event for other tabs and a custom event for the same tab
     window.dispatchEvent(new Event('experiencesUpdated'));
+    
+    // Log the current state after saving
+    console.log('Saved experiences to localStorage:', experiences);
   } catch (error) {
     console.error('Error saving experiences to localStorage:', error);
   }
@@ -51,6 +54,7 @@ export const addExperience = (experience: Experience): void => {
   const experiences = getExperiences();
   experiences.push(experience);
   saveExperiences(experiences);
+  console.log('Added new experience:', experience);
 };
 
 // Update an existing experience
@@ -60,6 +64,7 @@ export const updateExperience = (experience: Experience): void => {
   if (index !== -1) {
     experiences[index] = experience;
     saveExperiences(experiences);
+    console.log('Updated experience:', experience);
   } else {
     console.error(`Experience with ID ${experience.id} not found.`);
   }
@@ -71,6 +76,7 @@ export const deleteExperience = (id: string): void => {
   const filteredExperiences = experiences.filter(exp => exp.id !== id);
   if (filteredExperiences.length < experiences.length) {
     saveExperiences(filteredExperiences);
+    console.log('Deleted experience with ID:', id);
   } else {
     console.error(`Experience with ID ${id} not found.`);
   }
@@ -83,6 +89,7 @@ export const toggleExperienceStatus = (id: string): void => {
   if (index !== -1) {
     experiences[index].enabled = !experiences[index].enabled;
     saveExperiences(experiences);
+    console.log('Toggled experience status:', id, experiences[index].enabled);
   } else {
     console.error(`Experience with ID ${id} not found.`);
   }
