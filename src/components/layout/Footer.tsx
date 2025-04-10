@@ -18,20 +18,8 @@ const Footer = () => {
               alt="Logo" 
               className="h-12 mb-4 brightness-200"
             />
-            <p className="mt-4 text-gray-300">
-              Discover extraordinary experiences around the world. We connect travelers with authentic local experiences.
-            </p>
-            <div className="flex mt-6 space-x-4">
-              <a href="#" className="text-white hover:text-accent-light transition-colors">
-                <Facebook />
-              </a>
-              <a href="#" className="text-white hover:text-accent-light transition-colors">
-                <Instagram />
-              </a>
-              <a href="#" className="text-white hover:text-accent-light transition-colors">
-                <Twitter />
-              </a>
-            </div>
+           
+      
           </div>
 
           
