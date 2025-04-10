@@ -1,5 +1,5 @@
 
 export const ADMIN_CREDENTIALS = {
   username: "admin",
-  password: "password123"
+  password: "351351"
 };
