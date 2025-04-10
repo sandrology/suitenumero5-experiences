@@ -1,4 +1,5 @@
-[
+
+export const experiencesData = [
   {
     "id": "1",
     "enabled": true,
@@ -95,7 +96,7 @@
         "content": "fdasf"
       }
     },
-    "price": "0.04",
+    "price": 0.04,
     "duration": "1",
     "location": "13r",
     "rating": 5,
@@ -120,11 +121,11 @@
         "content": "bbbbb"
       }
     },
-    "price": "1",
+    "price": 1,
     "duration": "1",
     "location": "nnnn",
     "rating": 5,
     "maxPeople": 10,
     "reviews": []
   }
-]
+];
