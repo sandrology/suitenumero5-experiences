@@ -72,8 +72,11 @@ const AdminDashboard = () => {
   };
 
   const handleExportJson = () => {
+    // Modifica qui: formatta il JSON con la dichiarazione export corretta
     const jsonData = exportExperiencesAsJson();
-    const blob = new Blob([jsonData], { type: 'application/json' });
+    const formattedData = `\nexport const experiencesData = ${jsonData};\n`;
+    
+    const blob = new Blob([formattedData], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
