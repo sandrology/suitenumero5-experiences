@@ -105,7 +105,7 @@ const Index = () => {
       <div className="bg-white py-16 md:py-24">
         <div className="container-custom">
           <h2 className="heading-lg text-center mb-12">{t('whyChooseUs')}</h2>
-          
+ {/*          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="p-6">
               <div className="rounded-full bg-primary/10 p-4 inline-flex items-center justify-center mb-4 w-16 h-16">
@@ -146,6 +146,8 @@ const Index = () => {
                 {t('excellenceGuaranteedDesc')}
               </p>
             </div>
+          
+ */}         
           </div>
         </div>
       </div>
