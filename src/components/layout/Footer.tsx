@@ -70,7 +70,7 @@ const Footer = () => {
           </div>
 */}
 
-          
+ {/*          
           {/* Top Destinations */}
           <div>
             <h5 className="font-semibold text-lg mb-4">Top Destinations</h5>
@@ -92,7 +92,7 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-
+*/}
           {/* Contact */}
           <div>
             <h5 className="font-semibold text-lg mb-4">Contact Us</h5>
