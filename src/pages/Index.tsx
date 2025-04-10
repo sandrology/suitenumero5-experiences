@@ -103,7 +103,7 @@ const Index = () => {
 
       {/* Benefits Section */}
 
-  {/*      
+ {/*   
       <div className="bg-white py-16 md:py-24">
         <div className="container-custom">
           <h2 className="heading-lg text-center mb-12">{t('whyChooseUs')}</h2>
@@ -149,11 +149,11 @@ const Index = () => {
               </p>
             </div>
           
- */}         
+      
           </div>
         </div>
       </div>
-
+*/}
       <Footer />
     </div>
   );
