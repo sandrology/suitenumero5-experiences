@@ -127,5 +127,30 @@ export const experiencesData = [
     "rating": 5,
     "maxPeople": 10,
     "reviews": []
+  },
+  {
+    "id": "9dc5efd1-ea1e-48c5-8755-604e4009082c",
+    "enabled": true,
+    "images": [
+      "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&h=500"
+    ],
+    "translations": {
+      "en": {
+        "title": "cc",
+        "description": "ccc",
+        "content": "cccc"
+      },
+      "it": {
+        "title": "dcdc",
+        "description": "cdcd",
+        "content": "cdcdc"
+      }
+    },
+    "price": "111111",
+    "duration": "13",
+    "location": "taranto",
+    "rating": 5,
+    "maxPeople": "3",
+    "reviews": []
   }
 ];
