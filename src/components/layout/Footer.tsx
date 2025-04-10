@@ -85,17 +85,14 @@ const Footer = () => {
           <div>
             <h5 className="font-semibold text-lg mb-4">Contact Us</h5>
             <ul className="space-y-4">
-              <li className="flex items-start">
-                <MapPin className="w-5 h-5 mr-3 text-secondary" />
-                <span className="text-gray-300">123 Travel Street, Rome, Italy</span>
-              </li>
+              
               <li className="flex items-center">
                 <Phone className="w-5 h-5 mr-3 text-secondary" />
-                <span className="text-gray-300">+39 123 456 7890</span>
+                <span className="text-gray-300">+39 348 3103720</span>
               </li>
               <li className="flex items-center">
                 <Mail className="w-5 h-5 mr-3 text-secondary" />
-                <span className="text-gray-300">info@experiencetravel.com</span>
+                <span className="text-gray-300">info@suitenumero5.it</span>
               </li>
             </ul>
           </div>
