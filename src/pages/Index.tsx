@@ -56,10 +56,13 @@ const Index = () => {
           <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto mb-8">
             {t('discoverSubtitle')}
           </p>
+{/*
           <Link to="/#featured" className="btn-accent inline-flex items-center px-6 py-3 text-lg">
             <span>{t('experiences')}</span>
             <ArrowRight className="ml-2 h-5 w-5" />
           </Link>
+*/}
+          
         </div>
       </div>
 
