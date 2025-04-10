@@ -14,7 +14,7 @@ export const experiencesData = [
         "content": "<h2>Venice's Most Romantic Experience</h2><p>Glide through the canals of Venice on a 30-minute gondola ride while being serenaded with Italian love songs.</p><ul><li>30-minute gondola ride</li><li>Professional gondolier in traditional costume</li><li>Live music serenade</li><li>Pass under the famous Bridge of Sighs</li></ul><p>This <strong>unforgettable experience</strong> takes you through Venice's picturesque waterways, under bridges, beside famous mansions and buildings.</p>"
       },
       "it": {
-        "title": "Giro in Gondola a Venezia con Serenata",
+        "title": "zzzGiro in Gondola a Venezia con Serenatazzz",
         "description": "Vivi il romanticismo di Venezia con un giro tradizionale in gondola accompagnato da musica dal vivo.",
         "content": "<h2>L'Esperienza Più Romantica di Venezia</h2><p>Scorri attraverso i canali di Venezia in un giro in gondola di 30 minuti mentre vieni accompagnato da canzoni d'amore italiane.</p><ul><li>Giro in gondola di 30 minuti</li><li>Gondoliere professionista in costume tradizionale</li><li>Serenata dal vivo</li><li>Passa sotto il famoso Ponte dei Sospiri</li></ul><p>Questa <strong>esperienza indimenticabile</strong> ti porta attraverso le pittoresche vie d'acqua di Venezia, sotto i ponti, accanto a famose dimore ed edifici.</p>"
       }
