@@ -3,6 +3,7 @@ import React from 'react';
 import { Star, Clock, Users, MapPin } from 'lucide-react';
 import { Experience } from '../../data/mockExperiences';
 import { useLanguage } from '../../context/LanguageContext';
+import { Link } from 'react-router-dom';
 
 interface ExperienceDetailProps {
   experience: Experience;
@@ -48,10 +49,15 @@ const ExperienceDetail: React.FC<ExperienceDetailProps> = ({ experience }) => {
             </div>
           </div>
           <div className="mt-4 lg:mt-0">
-            <div className="text-3xl font-bold text-primary mb-2">${experience.price} <span className="text-base font-normal text-gray-600">per person</span></div>
+            <div className="text-3xl font-bold text-primary mb-2">€{experience.price} <span className="text-base font-normal text-gray-600">per person</span></div>
+            {/* Comment out Book Now button
             <button className="btn-primary w-full">
               {t('bookNow')}
             </button>
+            */}
+            <Link to="/#featured" className="btn-secondary w-full inline-block text-center">
+              {t('backToExperiences')}
+            </Link>
           </div>
         </div>
         

@@ -24,7 +24,7 @@ const ExperiencePage = () => {
         description: "The experience you're looking for doesn't exist.",
         variant: "destructive"
       });
-      navigate('/');
+      navigate('/#featured');
       return;
     }
     
@@ -34,7 +34,7 @@ const ExperiencePage = () => {
         description: "This experience is currently not available.",
         variant: "destructive"
       });
-      navigate('/');
+      navigate('/#featured');
       return;
     }
 

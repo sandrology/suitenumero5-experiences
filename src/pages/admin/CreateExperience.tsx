@@ -26,6 +26,7 @@ const CreateExperience = () => {
       location: experienceData.location ?? '',
       rating: experienceData.rating ?? 5.0,
       maxPeople: experienceData.maxPeople ?? 10,
+      reviews: experienceData.reviews ?? [],
     };
     
     // Save to localStorage

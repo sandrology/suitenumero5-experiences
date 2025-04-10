@@ -46,7 +46,7 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({ experience }) => {
         </div>
         <p className="text-gray-600 mb-4 line-clamp-2">{translation.description}</p>
         <div className="flex items-center justify-between mt-4">
-          <span className="text-primary font-bold text-xl">${experience.price}</span>
+          <span className="text-primary font-bold text-xl">€{experience.price}</span>
           <Link to={`/experience/${experience.id}`} className="btn-primary">
             {t('viewMore')}
           </Link>

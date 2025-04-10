@@ -1,12 +1,16 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, Globe } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X, Globe, LogOut } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { t, language, setLanguage } = useLanguage();
+  const { isLoggedIn, logout } = useAuth();
+  const location = useLocation();
+  const isAdminPage = location.pathname.includes('/admin');
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -16,8 +20,12 @@ const Navbar = () => {
     setLanguage(language === 'en' ? 'it' : 'en');
   };
 
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
-    <nav className="bg-white shadow-md">
+    <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="container-custom py-4">
         <div className="flex justify-between items-center">
           <Link to="/" className="flex items-center">
@@ -33,7 +41,7 @@ const Navbar = () => {
             <Link to="/" className="text-gray-800 hover:text-primary transition-colors">
               {t('home')}
             </Link>
-            <Link to="/experiences" className="text-gray-800 hover:text-primary transition-colors">
+            <Link to="/#featured" className="text-gray-800 hover:text-primary transition-colors">
               {t('experiences')}
             </Link>
             <Link to="/about" className="text-gray-800 hover:text-primary transition-colors">
@@ -52,9 +60,20 @@ const Navbar = () => {
               <Globe className="h-5 w-5" />
               <span>{language.toUpperCase()}</span>
             </button>
-            <Link to="/admin" className="btn-primary">
-              {t('admin')}
-            </Link>
+            
+            {isLoggedIn && isAdminPage ? (
+              <button 
+                onClick={handleLogout} 
+                className="flex items-center text-gray-600 hover:text-red-500"
+              >
+                <LogOut className="h-5 w-5 mr-1" />
+                {t('logout')}
+              </button>
+            ) : (
+              <Link to="/admin/login" className="btn-primary">
+                {t('admin')}
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -83,7 +102,7 @@ const Navbar = () => {
               {t('home')}
             </Link>
             <Link 
-              to="/experiences" 
+              to="/#featured" 
               className="block py-2 text-gray-800 hover:text-primary"
               onClick={toggleMenu}
             >
@@ -103,13 +122,25 @@ const Navbar = () => {
             >
               {t('contact')}
             </Link>
-            <Link 
-              to="/admin" 
-              className="block py-2 text-gray-800 hover:text-primary"
-              onClick={toggleMenu}
-            >
-              {t('admin')}
-            </Link>
+            {isLoggedIn && isAdminPage ? (
+              <button 
+                onClick={() => {
+                  handleLogout();
+                  toggleMenu();
+                }} 
+                className="block py-2 text-gray-800 hover:text-red-500 w-full text-left"
+              >
+                {t('logout')}
+              </button>
+            ) : (
+              <Link 
+                to="/admin/login" 
+                className="block py-2 text-gray-800 hover:text-primary"
+                onClick={toggleMenu}
+              >
+                {t('admin')}
+              </Link>
+            )}
           </div>
         )}
       </div>
