@@ -1,4 +1,5 @@
-[
+
+export const experiencesData = [
   {
     "id": "1",
     "enabled": true,
@@ -102,4 +103,4 @@
     "maxPeople": 10,
     "reviews": []
   }
-]
+];
