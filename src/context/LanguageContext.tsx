@@ -65,7 +65,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         'about': 'Chi Siamo',
         'contact': 'Contatti',
         'login': 'Accedi',
-        'admin': 'Amministrazione',
+        'admin': 'Admin',
         'create': 'Crea',
         'edit': 'Modifica',
         'delete': 'Elimina',
