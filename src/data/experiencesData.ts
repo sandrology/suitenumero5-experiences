@@ -1,5 +1,4 @@
-
-export const experiencesData = [
+[
   {
     "id": "1",
     "enabled": true,
@@ -102,5 +101,30 @@ export const experiencesData = [
     "rating": 5,
     "maxPeople": 10,
     "reviews": []
+  },
+  {
+    "id": "4fd36752-941e-4991-88a2-df8e332c3564",
+    "enabled": true,
+    "images": [
+      "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&h=500"
+    ],
+    "translations": {
+      "en": {
+        "title": "aa",
+        "description": "aaaa",
+        "content": "<ol><li>s</li><li>sdsdsd</li><li>aaaaaaaaaaaaaaa</li><li><br></li></ol>"
+      },
+      "it": {
+        "title": "bbb",
+        "description": "bbbb",
+        "content": "bbbbb"
+      }
+    },
+    "price": "1",
+    "duration": "1",
+    "location": "nnnn",
+    "rating": 5,
+    "maxPeople": 10,
+    "reviews": []
   }
-];
+]
