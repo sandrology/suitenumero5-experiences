@@ -67,7 +67,9 @@ const Footer = () => {
               </li>
             </ul>
           </div>
+*/}
 
+          
           {/* Top Destinations */}
           <div>
             <h5 className="font-semibold text-lg mb-4">Top Destinations</h5>
@@ -109,7 +111,7 @@ const Footer = () => {
             </ul>
           </div>
         </div>
-*/}
+
         <div className="border-t border-gray-700 mt-12 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
