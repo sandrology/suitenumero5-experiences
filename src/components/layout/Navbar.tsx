@@ -41,6 +41,7 @@ const Navbar = () => {
             <Link to="/" className="text-gray-800 hover:text-primary transition-colors">
               {t('home')}
             </Link>
+  {/*        
             <Link to="/#featured" className="text-gray-800 hover:text-primary transition-colors">
               {t('experiences')}
             </Link>
@@ -50,6 +51,9 @@ const Navbar = () => {
             <Link to="/contact" className="text-gray-800 hover:text-primary transition-colors">
               {t('contact')}
             </Link>
+
+*/}
+            
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
