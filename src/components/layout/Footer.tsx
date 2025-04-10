@@ -14,7 +14,7 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <img 
-              src="https://suitenumero5.s3.us-east-1.amazonaws.com/img/logoorizontale.png" 
+              src="https://suitenumero5.s3.us-east-1.amazonaws.com/img/scrittaorizzontalebianca.png" 
               alt="Logo" 
               className="h-12 mb-4 brightness-200"
             />
