@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import Navbar from '../../components/layout/Navbar';
 import ExperienceForm from '../../components/admin/ExperienceForm';
-import { Experience } from '../../data/mockExperiences';
+import { Experience } from '../../types/experience';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from "@/hooks/use-toast";
 import { addExperience, DEFAULT_IMAGE } from '../../services/experienceService';
@@ -26,7 +26,7 @@ const CreateExperience = () => {
       location: experienceData.location ?? '',
       rating: experienceData.rating ?? 5.0,
       maxPeople: experienceData.maxPeople ?? 10,
-      reviews: experienceData.reviews ?? [],
+      reviews: [], // Initialize with empty reviews array
     };
     
     // Save to localStorage

@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import ExperienceDetail from '../components/experiences/ExperienceDetail';
-import { Experience } from '../data/mockExperiences';
+import { Experience } from '../types/experience';
 import { useToast } from "@/hooks/use-toast";
 import { getExperiences } from '../services/experienceService';
 

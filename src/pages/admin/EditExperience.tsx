@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/layout/Navbar';
 import ExperienceForm from '../../components/admin/ExperienceForm';
-import { Experience } from '../../data/mockExperiences';
+import { Experience } from '../../types/experience';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from "@/hooks/use-toast";
 import { getExperienceById, updateExperience, DEFAULT_IMAGE } from '../../services/experienceService';

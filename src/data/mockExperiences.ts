@@ -20,6 +20,15 @@ export interface Experience {
   location: string;
   rating: number;
   maxPeople: number;
+  reviews: Review[];
+}
+
+export interface Review {
+  id: string;
+  name: string;
+  rating: number;
+  comment: string;
+  date: string;
 }
 
 export const mockExperiences: Experience[] = [
@@ -46,7 +55,8 @@ export const mockExperiences: Experience[] = [
     duration: '33 minutes',
     location: 'Venice, Italy',
     rating: 4.8,
-    maxPeople: 6
+    maxPeople: 6,
+    reviews: []
   },
   {
     id: '2',
@@ -71,7 +81,8 @@ export const mockExperiences: Experience[] = [
     duration: '8 hours',
     location: 'Florence, Italy',
     rating: 4.9,
-    maxPeople: 12
+    maxPeople: 12,
+    reviews: []
   },
   {
     id: '3',
@@ -96,6 +107,7 @@ export const mockExperiences: Experience[] = [
     duration: '3 hours',
     location: 'Rome, Italy',
     rating: 4.7,
-    maxPeople: 15
+    maxPeople: 15,
+    reviews: []
   },
 ];

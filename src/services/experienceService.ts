@@ -1,52 +1,66 @@
 
-import { Experience } from '../data/mockExperiences';
-
-// Storage key for saving experiences in localStorage
-export const STORAGE_KEY = 'experiences_data';
+import { Experience } from '../types/experience';
+import { mockExperiences } from '../data/mockExperiences';
 
 // Default image for experiences
 export const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&h=500";
 
-// Retrieve experiences from localStorage
-export const getExperiences = (): Experience[] => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      return JSON.parse(saved);
+// Storage key for the application state
+export const STORAGE_KEY = 'experiences_data';
+
+// In-memory storage to simulate file storage
+let experiencesData: Experience[] = [];
+
+// Initialize the in-memory storage with mock data if it's empty
+const initializeInMemoryStorage = () => {
+  if (experiencesData.length === 0) {
+    try {
+      // Try to get data from localStorage first (for backwards compatibility)
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        experiencesData = JSON.parse(saved);
+      } else {
+        // If no localStorage data, use mock data
+        experiencesData = [...mockExperiences];
+      }
+    } catch (error) {
+      console.error('Error initializing data:', error);
+      experiencesData = [...mockExperiences];
     }
-    return [];
-  } catch (error) {
-    console.error('Error loading experiences from localStorage:', error);
-    return [];
   }
+  return experiencesData;
 };
 
-// Save experiences to localStorage and dispatch an event to update other tabs/components
+// Get experiences from the in-memory storage
+export const getExperiences = (): Experience[] => {
+  return initializeInMemoryStorage();
+};
+
+// Save experiences to in-memory storage and notify components
 export const saveExperiences = (experiences: Experience[]): void => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(experiences));
+    // Update in-memory storage
+    experiencesData = [...experiences];
     
-    // Dispatch both a storage event for other tabs and a custom event for the same tab
+    // For backwards compatibility, also save to localStorage
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(experiencesData));
+    
+    // Dispatch an event to notify components about the update
     window.dispatchEvent(new Event('experiencesUpdated'));
     
-    // Log the current state after saving
-    console.log('Saved experiences to localStorage:', experiences);
+    console.log('Saved experiences to data file:', experiencesData);
   } catch (error) {
-    console.error('Error saving experiences to localStorage:', error);
+    console.error('Error saving experiences:', error);
   }
 };
 
-// Initialize localStorage with sample data if empty
+// Initialize experiences from mock data if needed
 export const initializeExperiences = (mockData: Experience[]): Experience[] => {
-  const currentData = getExperiences();
-  
-  // If there's no data in localStorage, initialize with mock data
-  if (currentData.length === 0) {
-    saveExperiences(mockData);
-    return mockData;
+  if (experiencesData.length === 0) {
+    experiencesData = [...mockData];
+    saveExperiences(experiencesData);
   }
-  
-  return currentData;
+  return experiencesData;
 };
 
 // Add a new experience

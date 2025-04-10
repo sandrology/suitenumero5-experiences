@@ -28,5 +28,5 @@ export interface Experience {
   location: string;
   rating: number;
   maxPeople: number;
-  reviews?: Review[];
+  reviews: Review[];  // Modificato da reviews?: Review[] a reviews: Review[]
 }
