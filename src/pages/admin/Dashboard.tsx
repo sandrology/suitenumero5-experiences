@@ -1,15 +1,16 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Edit, Trash, Eye, EyeOff, Plus } from 'lucide-react';
+import { Edit, Trash, Eye, EyeOff, Plus, Download } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
-import { mockExperiences, Experience } from '../../data/mockExperiences';
+import { Experience } from '../../types/experience';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from "@/hooks/use-toast";
 import { 
-  initializeExperiences, 
   getExperiences, 
   deleteExperience, 
   toggleExperienceStatus,
+  exportExperiencesAsJson,
   DEFAULT_IMAGE
 } from '../../services/experienceService';
 
@@ -20,8 +21,7 @@ const AdminDashboard = () => {
 
   // Function to load experiences
   const loadExperiences = () => {
-    // Initialize with mock data if localStorage is empty
-    const loadedExperiences = initializeExperiences(mockExperiences);
+    const loadedExperiences = getExperiences();
     setExperiences(loadedExperiences);
     console.log('Admin loaded experiences:', loadedExperiences);
   };
@@ -29,17 +29,15 @@ const AdminDashboard = () => {
   useEffect(() => {
     loadExperiences();
     
-    // Add custom event listener to update experiences when they change in this or other tabs
+    // Add custom event listener to update experiences when they change
     const handleExperiencesUpdated = () => {
       setExperiences(getExperiences());
     };
     
     window.addEventListener('experiencesUpdated', handleExperiencesUpdated);
-    window.addEventListener('storage', () => setExperiences(getExperiences()));
     
     return () => {
       window.removeEventListener('experiencesUpdated', handleExperiencesUpdated);
-      window.removeEventListener('storage', () => setExperiences(getExperiences()));
     };
   }, []);
 
@@ -73,6 +71,24 @@ const AdminDashboard = () => {
     });
   };
 
+  const handleExportJson = () => {
+    const jsonData = exportExperiencesAsJson();
+    const blob = new Blob([jsonData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'experiencesData.ts';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: t('exportSuccess'),
+      description: 'Experiences data exported successfully. Add this to your project under src/data/experiencesData.ts'
+    });
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
@@ -81,10 +97,20 @@ const AdminDashboard = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="heading-lg">{t('manageExperiences')}</h1>
-            <Link to="/admin/create" className="btn-primary inline-flex items-center">
-              <Plus className="mr-2 h-4 w-4" />
-              {t('createExperience')}
-            </Link>
+            <div className="flex space-x-3">
+              <button
+                onClick={handleExportJson}
+                className="btn-secondary inline-flex items-center"
+                title="Export as JSON"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Export Data
+              </button>
+              <Link to="/admin/create" className="btn-primary inline-flex items-center">
+                <Plus className="mr-2 h-4 w-4" />
+                {t('createExperience')}
+              </Link>
+            </div>
           </div>
           
           <div className="overflow-x-auto">

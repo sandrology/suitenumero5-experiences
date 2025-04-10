@@ -1,31 +1,21 @@
 
 import { Experience } from '../types/experience';
-import { mockExperiences } from '../data/mockExperiences';
+import { experiencesData as initialData } from '../data/experiencesData';
 
 // Default image for experiences
 export const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&h=500";
 
-// Storage key for the application state
-export const STORAGE_KEY = 'experiences_data';
-
 // In-memory storage to simulate file storage
 let experiencesData: Experience[] = [];
 
-// Initialize the in-memory storage with mock data if it's empty
+// Initialize the in-memory storage with initial data
 const initializeInMemoryStorage = () => {
   if (experiencesData.length === 0) {
     try {
-      // Try to get data from localStorage first (for backwards compatibility)
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        experiencesData = JSON.parse(saved);
-      } else {
-        // If no localStorage data, use mock data
-        experiencesData = [...mockExperiences];
-      }
+      experiencesData = [...initialData];
     } catch (error) {
       console.error('Error initializing data:', error);
-      experiencesData = [...mockExperiences];
+      experiencesData = [];
     }
   }
   return experiencesData;
@@ -42,25 +32,13 @@ export const saveExperiences = (experiences: Experience[]): void => {
     // Update in-memory storage
     experiencesData = [...experiences];
     
-    // For backwards compatibility, also save to localStorage
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(experiencesData));
-    
     // Dispatch an event to notify components about the update
     window.dispatchEvent(new Event('experiencesUpdated'));
     
-    console.log('Saved experiences to data file:', experiencesData);
+    console.log('Updated experiences in memory:', experiencesData);
   } catch (error) {
     console.error('Error saving experiences:', error);
   }
-};
-
-// Initialize experiences from mock data if needed
-export const initializeExperiences = (mockData: Experience[]): Experience[] => {
-  if (experiencesData.length === 0) {
-    experiencesData = [...mockData];
-    saveExperiences(experiencesData);
-  }
-  return experiencesData;
 };
 
 // Add a new experience
@@ -113,4 +91,9 @@ export const toggleExperienceStatus = (id: string): void => {
 export const getExperienceById = (id: string): Experience | undefined => {
   const experiences = getExperiences();
   return experiences.find(exp => exp.id === id);
+};
+
+// Export experiences as JSON string
+export const exportExperiencesAsJson = (): string => {
+  return JSON.stringify(experiencesData, null, 2);
 };

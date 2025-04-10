@@ -1,11 +1,10 @@
-
 import React, { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import ExperienceCard from '../components/experiences/ExperienceCard';
-import { Experience } from '../data/mockExperiences';
+import { Experience } from '../types/experience';
 import { useLanguage } from '../context/LanguageContext';
 import { getExperiences } from '../services/experienceService';
 
@@ -14,7 +13,7 @@ const Index = () => {
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Function to load experiences from localStorage
+  // Function to load experiences from in-memory storage
   const loadExperiences = () => {
     const loadedExperiences = getExperiences();
     setExperiences(loadedExperiences);
@@ -26,27 +25,16 @@ const Index = () => {
     // Load experiences initially
     loadExperiences();
     
-    // Add event listeners for both storage changes (other tabs) and custom event (same tab)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'experiences_data') {
-        console.log('Storage event detected in Home');
-        loadExperiences();
-      }
-    };
-    
+    // Add event listeners for custom event
     const handleExperiencesUpdated = () => {
       console.log('Experiences updated event detected in Home');
       loadExperiences();
     };
     
-    // Listen for storage events (other tabs)
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Listen for custom events (same tab)
+    // Listen for custom events
     window.addEventListener('experiencesUpdated', handleExperiencesUpdated);
     
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('experiencesUpdated', handleExperiencesUpdated);
     };
   }, []);

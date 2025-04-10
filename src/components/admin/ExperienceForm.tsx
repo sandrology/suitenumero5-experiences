@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import RichTextEditor from './RichTextEditor';
-import { Experience } from '../../data/mockExperiences';
+import { Experience } from '../../types/experience';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface ExperienceFormProps {

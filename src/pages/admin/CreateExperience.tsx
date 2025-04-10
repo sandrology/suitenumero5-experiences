@@ -29,7 +29,7 @@ const CreateExperience = () => {
       reviews: [], // Initialize with empty reviews array
     };
     
-    // Save to localStorage
+    // Add to in-memory storage
     addExperience(newExperience);
     
     console.log('Created new experience:', newExperience);
