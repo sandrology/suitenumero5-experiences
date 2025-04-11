@@ -14,6 +14,16 @@ export const CONFIG = {
 // In-memory storage to simulate file storage
 let experiencesData: Experience[] = [];
 
+// Utility function to ensure numeric values
+const ensureNumericValues = (experiences: any[]): Experience[] => {
+  return experiences.map(exp => ({
+    ...exp,
+    price: typeof exp.price === 'string' ? parseFloat(exp.price) || 0 : exp.price,
+    maxPeople: typeof exp.maxPeople === 'string' ? parseInt(exp.maxPeople) || 0 : exp.maxPeople,
+    rating: typeof exp.rating === 'string' ? parseFloat(exp.rating) || 0 : exp.rating,
+  }));
+};
+
 // Initialize the in-memory storage with initial data
 const initializeInMemoryStorage = () => {
   if (experiencesData.length === 0) {
@@ -21,9 +31,10 @@ const initializeInMemoryStorage = () => {
       // Prima verifichiamo se ci sono dati nel localStorage
       const storedData = localStorage.getItem('experiences');
       if (storedData) {
-        experiencesData = JSON.parse(storedData);
+        const parsedData = JSON.parse(storedData);
+        experiencesData = ensureNumericValues(parsedData);
       } else {
-        experiencesData = [...initialData];
+        experiencesData = ensureNumericValues([...initialData]);
         // Salva subito nel localStorage
         localStorage.setItem('experiences', JSON.stringify(experiencesData));
       }
@@ -48,8 +59,11 @@ export const getExperiences = (): Experience[] => {
 // Save experiences to storage and notify components
 export const saveExperiences = (experiences: Experience[]): void => {
   try {
+    // Ensure numeric values
+    const validatedExperiences = ensureNumericValues(experiences);
+    
     // Update in-memory storage
-    experiencesData = [...experiences];
+    experiencesData = [...validatedExperiences];
     
     // Salva nel localStorage
     localStorage.setItem('experiences', JSON.stringify(experiencesData));

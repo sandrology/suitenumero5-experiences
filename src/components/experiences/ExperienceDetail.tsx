@@ -7,9 +7,10 @@ import { Link } from 'react-router-dom';
 
 interface ExperienceDetailProps {
   experience: Experience;
+  formattedContent?: string; // Aggiungiamo questa prop
 }
 
-const ExperienceDetail: React.FC<ExperienceDetailProps> = ({ experience }) => {
+const ExperienceDetail: React.FC<ExperienceDetailProps> = ({ experience, formattedContent }) => {
   const { language, t } = useLanguage();
   
   // Extract translated content based on current language
@@ -90,7 +91,7 @@ const ExperienceDetail: React.FC<ExperienceDetailProps> = ({ experience }) => {
           <h2 className="heading-sm mb-4">{t('content')}</h2>
           <div 
             className="prose max-w-none text-gray-600"
-            dangerouslySetInnerHTML={{ __html: translation.content }}
+            dangerouslySetInnerHTML={{ __html: formattedContent || translation.content }}
           />
         </div>
       </div>
