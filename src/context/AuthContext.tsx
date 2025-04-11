@@ -21,10 +21,10 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   
-  // Check localStorage for login status on initial load
+  // Check localStorage for login status on initial load with a more reliable key
   useEffect(() => {
-    const loggedIn = localStorage.getItem('adminLoggedIn');
-    if (loggedIn === 'true') {
+    const storedLoginStatus = localStorage.getItem('adminSessionActive');
+    if (storedLoginStatus === 'true') {
       setIsLoggedIn(true);
     }
   }, []);
@@ -32,8 +32,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = (username: string, password: string): boolean => {
     if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
       setIsLoggedIn(true);
-      // Store login state in localStorage
-      localStorage.setItem('adminLoggedIn', 'true');
+      // Store login state in localStorage with a more descriptive key
+      localStorage.setItem('adminSessionActive', 'true');
+      // Set a cookie as additional persistence method
+      document.cookie = "adminLoggedIn=true; path=/; max-age=31536000"; // 1 year expiration
       return true;
     }
     return false;
@@ -41,7 +43,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setIsLoggedIn(false);
-    localStorage.removeItem('adminLoggedIn');
+    localStorage.removeItem('adminSessionActive');
+    // Clear the cookie on logout
+    document.cookie = "adminLoggedIn=; path=/; max-age=0";
   };
 
   return (

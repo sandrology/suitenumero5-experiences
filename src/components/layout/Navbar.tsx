@@ -32,31 +32,16 @@ const Navbar = () => {
             <img 
               src="https://suitenumero5.s3.us-east-1.amazonaws.com/img/logoorizontale.png" 
               alt="Logo" 
-              className="h-12" 
+              className="h-10" 
             />
           </Link>
 
           {/* Desktop menu */}
-          <div className="hidden md:flex space-x-8">
+          <div className="hidden md:flex items-center space-x-6">
             <Link to="/" className="text-gray-800 hover:text-primary transition-colors">
               {t('home')}
             </Link>
-  {/*        
-            <Link to="/#featured" className="text-gray-800 hover:text-primary transition-colors">
-              {t('experiences')}
-            </Link>
-            <Link to="/about" className="text-gray-800 hover:text-primary transition-colors">
-              {t('about')}
-            </Link>
-            <Link to="/contact" className="text-gray-800 hover:text-primary transition-colors">
-              {t('contact')}
-            </Link>
-
-*/}
             
-          </div>
-
-          <div className="hidden md:flex items-center space-x-4">
             <button
               onClick={toggleLanguage}
               className="flex items-center space-x-1 text-gray-600 hover:text-primary"
@@ -104,27 +89,6 @@ const Navbar = () => {
               onClick={toggleMenu}
             >
               {t('home')}
-            </Link>
-            <Link 
-              to="/#featured" 
-              className="block py-2 text-gray-800 hover:text-primary"
-              onClick={toggleMenu}
-            >
-              {t('experiences')}
-            </Link>
-            <Link 
-              to="/about" 
-              className="block py-2 text-gray-800 hover:text-primary"
-              onClick={toggleMenu}
-            >
-              {t('about')}
-            </Link>
-            <Link 
-              to="/contact" 
-              className="block py-2 text-gray-800 hover:text-primary"
-              onClick={toggleMenu}
-            >
-              {t('contact')}
             </Link>
             {isLoggedIn && isAdminPage ? (
               <button 

@@ -1,54 +1,104 @@
-
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import ExperienceDetail from '../components/experiences/ExperienceDetail';
-import { Experience } from '../types/experience';
-import { useToast } from "@/hooks/use-toast";
-import { getExperiences } from '../services/experienceService';
+import { Experience, Review } from '../types/experience';
+import { getExperienceById, formatContent } from '../services/experienceService';
+import ReviewsList from '../components/experiences/ReviewsList';
+import { addReview, getReviews } from '../services/reviewService';
+import { useToast } from '@/hooks/use-toast';
 
 const ExperiencePage = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const { language } = useLanguage();
   const { toast } = useToast();
   const [experience, setExperience] = useState<Experience | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [reviews, setReviews] = useState<Review[]>([]);
   
   useEffect(() => {
-    const experiences = getExperiences();
-    const foundExperience = experiences.find(exp => exp.id === id);
-    
-    if (!foundExperience) {
-      toast({
-        title: "Experience Not Found",
-        description: "The experience you're looking for doesn't exist.",
-        variant: "destructive"
-      });
-      navigate('/#featured');
-      return;
+    if (id) {
+      // Carica l'esperienza
+      const foundExperience = getExperienceById(id);
+      
+      if (foundExperience) {
+        setExperience(foundExperience);
+        
+        // Carica le recensioni
+        const experienceReviews = [...foundExperience.reviews, ...getReviews(id)];
+        setReviews(experienceReviews);
+      }
+      
+      setLoading(false);
     }
-    
-    if (!foundExperience.enabled) {
-      toast({
-        title: "Experience Not Available",
-        description: "This experience is currently not available.",
-        variant: "destructive"
-      });
-      navigate('/#featured');
-      return;
+  }, [id]);
+  
+  const handleReviewAdded = (newReview: Review) => {
+    if (id) {
+      // Aggiungi la recensione
+      const success = addReview(id, newReview);
+      
+      if (success) {
+        // Aggiorna lo stato locale
+        setReviews(prevReviews => [...prevReviews, newReview]);
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to add the review',
+          variant: 'destructive',
+        });
+      }
     }
+  };
 
-    setExperience(foundExperience);
-  }, [id, navigate, toast]);
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        </div>
+      </div>
+    );
+  }
 
-  if (!experience) return null;
+  if (!experience) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="heading-lg text-gray-800 mb-4">Experience not found</h2>
+            <p className="text-gray-600">The experience you're looking for does not exist or has been removed.</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const currentLanguageData = experience.translations[language];
+  const formattedContent = formatContent(currentLanguageData.content);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
       
-      <main className="flex-grow container-custom py-12">
-        <ExperienceDetail experience={experience} />
+      <main className="flex-grow py-12">
+        <ExperienceDetail 
+          experience={experience}
+          formattedContent={formattedContent}
+        />
+        
+        <div className="container-custom">
+          <ReviewsList 
+            reviews={reviews} 
+            experienceId={id || ''}
+            onReviewAdded={handleReviewAdded}
+          />
+        </div>
       </main>
       
       <Footer />

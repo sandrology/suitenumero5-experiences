@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Edit, Trash, Eye, EyeOff, Plus, Download } from 'lucide-react';
@@ -23,7 +22,6 @@ const AdminDashboard = () => {
   const loadExperiences = () => {
     const loadedExperiences = getExperiences();
     setExperiences(loadedExperiences);
-    console.log('Admin loaded experiences:', loadedExperiences);
   };
 
   useEffect(() => {
@@ -72,11 +70,11 @@ const AdminDashboard = () => {
   };
 
   const handleExportJson = () => {
-    // Modifica qui: formatta il JSON con la dichiarazione export corretta
+    // Corretto: esporta il JSON con la dichiarazione export const
     const jsonData = exportExperiencesAsJson();
-    const formattedData = `\nexport const experiencesData = ${jsonData};\n`;
+    const formattedData = `export const experiencesData = ${jsonData};`;
     
-    const blob = new Blob([formattedData], { type: 'application/json' });
+    const blob = new Blob([formattedData], { type: 'application/javascript' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
