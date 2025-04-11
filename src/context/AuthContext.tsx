@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { ADMIN_CREDENTIALS } from '../config/auth';
 
 // Define the shape of the auth context
 interface AuthContextType {
@@ -30,10 +31,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Mock login function
+  // Login function with hardcoded credentials
   const login = async (username: string, password: string): Promise<boolean> => {
-    // Hard-coded credentials for demo purposes
-    if (username === 'admin' && password === 'password') {
+    // Use credentials from config file
+    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
       setIsAuthenticated(true);
       // Store authentication state in localStorage to persist across sessions
       localStorage.setItem('isAuthenticated', 'true');
