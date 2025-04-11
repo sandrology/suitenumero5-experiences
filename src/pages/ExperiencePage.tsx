@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -43,6 +44,14 @@ const ExperiencePage = () => {
       if (success) {
         // Aggiorna lo stato locale
         setReviews(prevReviews => [...prevReviews, newReview]);
+        
+        // Aggiorna anche l'esperienza locale se necessario
+        if (experience) {
+          setExperience({
+            ...experience,
+            reviews: [...experience.reviews, newReview]
+          });
+        }
       } else {
         toast({
           title: 'Error',

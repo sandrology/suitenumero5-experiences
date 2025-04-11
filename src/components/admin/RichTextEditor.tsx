@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Bold, Italic, List, Heading1, Heading2, Heading3, 
   AlignLeft, AlignCenter, AlignRight, ListOrdered, Palette,
-  Type
+  Type, Underline, Link, Image, FileType
 } from 'lucide-react';
 
 interface RichTextEditorProps {
@@ -24,7 +24,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   useEffect(() => {
     if (editorRef.current) {
-      editorRef.current.innerHTML = initialValue;
+      editorRef.current.innerHTML = initialValue || '';
     }
   }, [initialValue]);
 
@@ -46,10 +46,33 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const execCommand = (command: string, value: string = '') => {
     document.execCommand(command, false, value);
     handleInput();
-    // Mantieni il focus sull'editor dopo l'esecuzione del comando
+    // Maintain focus on the editor after executing the command
     if (editorRef.current) {
       editorRef.current.focus();
     }
+  };
+
+  const handleInsertLink = () => {
+    const url = prompt('Enter URL:', 'https://');
+    if (url) {
+      execCommand('createLink', url);
+    }
+  };
+  
+  const handleInsertImage = () => {
+    const url = prompt('Enter image URL:', 'https://');
+    if (url) {
+      execCommand('insertImage', url);
+    }
+  };
+
+  // Format text as bullet points or numbered lists
+  const handleBulletList = () => {
+    execCommand('insertUnorderedList');
+  };
+
+  const handleNumberedList = () => {
+    execCommand('insertOrderedList');
   };
 
   // Handle pasted content
@@ -57,10 +80,63 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     e.preventDefault();
     
     // Get plain text from clipboard
-    const text = e.clipboardData.getData('text/html') || e.clipboardData.getData('text');
+    const text = e.clipboardData.getData('text/plain');
     
-    // Insert text at cursor position
-    document.execCommand('insertHTML', false, text);
+    // Check if the text appears to be a list
+    const lines = text.split('\n');
+    let htmlContent = '';
+    
+    // Process line by line to maintain formatting
+    for (const line of lines) {
+      // Check if line looks like a bullet point
+      if (line.trim().startsWith('*') || line.trim().startsWith('-')) {
+        // If we haven't started a list, start one
+        if (!htmlContent.includes('<ul>')) {
+          htmlContent += '<ul>';
+        }
+        // Add list item
+        htmlContent += `<li>${line.trim().substring(1).trim()}</li>`;
+      } else if (line.trim().match(/^(\d+)\./) || line.trim().match(/^(\d+)\)/)) {
+        // If we haven't started a numbered list, start one
+        if (!htmlContent.includes('<ol>')) {
+          htmlContent += '<ol>';
+        }
+        // Extract content after the number and add as list item
+        const content = line.trim().replace(/^\d+[\.\)]/, '').trim();
+        htmlContent += `<li>${content}</li>`;
+      } else if (line.trim() === '' && htmlContent.includes('<ul>') && !htmlContent.includes('</ul>')) {
+        // Close bullet list on empty line
+        htmlContent += '</ul>';
+      } else if (line.trim() === '' && htmlContent.includes('<ol>') && !htmlContent.includes('</ol>')) {
+        // Close numbered list on empty line
+        htmlContent += '</ol>';
+      } else {
+        // Close any open lists
+        if (htmlContent.includes('<ul>') && !htmlContent.includes('</ul>')) {
+          htmlContent += '</ul>';
+        }
+        if (htmlContent.includes('<ol>') && !htmlContent.includes('</ol>')) {
+          htmlContent += '</ol>';
+        }
+        // Regular paragraph
+        if (line.trim() !== '') {
+          htmlContent += `${line}<br/>`;
+        } else {
+          htmlContent += '<br/>';
+        }
+      }
+    }
+    
+    // Close any open lists
+    if (htmlContent.includes('<ul>') && !htmlContent.includes('</ul>')) {
+      htmlContent += '</ul>';
+    }
+    if (htmlContent.includes('<ol>') && !htmlContent.includes('</ol>')) {
+      htmlContent += '</ol>';
+    }
+    
+    // Insert HTML at cursor position
+    document.execCommand('insertHTML', false, htmlContent);
     handleInput();
   };
 
@@ -91,10 +167,18 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         >
           <Italic className="h-5 w-5" />
         </button>
+        <button
+          type="button"
+          onClick={() => execCommand('underline')}
+          className="p-1 rounded hover:bg-gray-200"
+          title="Underline"
+        >
+          <Underline className="h-5 w-5" />
+        </button>
         <div className="h-6 w-px bg-gray-300 mx-1" />
         <button
           type="button"
-          onClick={() => execCommand('insertUnorderedList')}
+          onClick={handleBulletList}
           className="p-1 rounded hover:bg-gray-200"
           title="Bullet List"
         >
@@ -102,7 +186,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         </button>
         <button
           type="button"
-          onClick={() => execCommand('insertOrderedList')}
+          onClick={handleNumberedList}
           className="p-1 rounded hover:bg-gray-200"
           title="Numbered List"
         >
@@ -159,6 +243,23 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <AlignRight className="h-5 w-5" />
         </button>
         <div className="h-6 w-px bg-gray-300 mx-1" />
+        <button
+          type="button"
+          onClick={handleInsertLink}
+          className="p-1 rounded hover:bg-gray-200"
+          title="Insert Link"
+        >
+          <Link className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
+          onClick={handleInsertImage}
+          className="p-1 rounded hover:bg-gray-200"
+          title="Insert Image"
+        >
+          <Image className="h-5 w-5" />
+        </button>
+        <div className="h-6 w-px bg-gray-300 mx-1" />
         <div className="relative">
           <button
             type="button"
@@ -211,7 +312,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         onInput={handleInput}
         onPaste={handlePaste}
         data-placeholder={placeholder}
-        dangerouslySetInnerHTML={{ __html: initialValue }}
+        dangerouslySetInnerHTML={{ __html: initialValue || '' }}
         style={{ minHeight: '200px' }}
       />
       <div className="p-2 bg-gray-50 border-t text-xs text-gray-500">

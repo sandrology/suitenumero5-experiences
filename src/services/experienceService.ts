@@ -1,4 +1,3 @@
-
 import { Experience } from '../types/experience';
 import { experiencesData as initialData } from '../data/experiencesData';
 
@@ -138,7 +137,12 @@ export const exportExperiencesAsJson = (): string => {
 export const formatContent = (content: string): string => {
   if (!content) return '';
   
-  // Salviamo gli a capo originali
+  // Gestiamo il contenuto HTML direttamente se contiene già tag HTML
+  if (content.includes('<ul>') || content.includes('<ol>')) {
+    return content;
+  }
+  
+  // Altrimenti processiamo il testo normale riga per riga
   const lines = content.split('\n');
   let formattedContent = '';
   let inList = false;
@@ -158,10 +162,21 @@ export const formatContent = (content: string): string => {
       // Rimuovi il marker e aggiungi il tag <li>
       line = line.replace(/^[*-]\s/, '');
       formattedContent += `<li>${line}</li>`;
+    } else if (line.match(/^\d+\.\s/) || line.match(/^\d+\)\s/)) {
+      // Se è una lista numerata
+      // Se non siamo già in una lista, apriamo un tag <ol>
+      if (!inList) {
+        formattedContent += '<ol>';
+        inList = true;
+      }
+      
+      // Rimuovi il marker e aggiungi il tag <li>
+      line = line.replace(/^\d+[\.\)]\s/, '');
+      formattedContent += `<li>${line}</li>`;
     } else {
       // Se non è un elemento di lista ma eravamo in una lista, chiudiamo la lista
       if (inList) {
-        formattedContent += '</ul>';
+        formattedContent += inList ? '</ul>' : '</ol>';
         inList = false;
       }
       
