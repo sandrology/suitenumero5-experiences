@@ -7,19 +7,30 @@ import Footer from '../components/layout/Footer';
 import ExperienceCard from '../components/experiences/ExperienceCard';
 import { Experience } from '../types/experience';
 import { useLanguage } from '../context/LanguageContext';
-import { getExperiences } from '../services/experienceService';
+import { getExperiences, initializeSupabaseData } from '../services/experienceService';
 
 const Index = () => {
   const { t } = useLanguage();
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Function to load experiences from in-memory storage
-  const loadExperiences = () => {
-    const loadedExperiences = getExperiences();
-    setExperiences(loadedExperiences);
-    setLoading(false);
-    console.log('Home loaded experiences:', loadedExperiences);
+  // Function to load experiences
+  const loadExperiences = async () => {
+    setLoading(true);
+    try {
+      // Initialize Supabase data if needed
+      await initializeSupabaseData();
+      
+      // Then load experiences
+      const loadedExperiences = await getExperiences();
+      setExperiences(loadedExperiences);
+      console.log('Home loaded experiences:', loadedExperiences);
+    } catch (error) {
+      console.error('Error loading experiences:', error);
+      setExperiences([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

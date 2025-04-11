@@ -1,17 +1,26 @@
+
 import { Experience } from '../types/experience';
 import { experiencesData as initialData } from '../data/experiencesData';
+import { 
+  supabase,
+  fetchExperiences as fetchSupabaseExperiences,
+  insertExperience,
+  updateExperienceById,
+  deleteExperienceById,
+  importExperiences as importSupabaseExperiences
+} from './supabaseService';
 
 // Default image for experiences
 export const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&h=500";
 
-// Configurazione per determinare il data store da utilizzare
+// Configuration to determine which data store to use
 export const CONFIG = {
-  // Impostato su 'local' per ora, in futuro potrà essere 'supabase'
-  dataStore: 'local'
+  // Set to 'supabase' to use Supabase, 'local' for localStorage
+  dataStore: 'supabase'
 };
 
-// In-memory storage to simulate file storage
-let experiencesData: Experience[] = [];
+// In-memory storage to cache experiences
+let experiencesCache: Experience[] = [];
 
 // Utility function to ensure numeric values
 const ensureNumericValues = (experiences: any[]): Experience[] => {
@@ -23,121 +32,311 @@ const ensureNumericValues = (experiences: any[]): Experience[] => {
   }));
 };
 
-// Initialize the in-memory storage with initial data
-const initializeInMemoryStorage = () => {
-  if (experiencesData.length === 0) {
+// Initialize the in-memory storage with initial data from localStorage
+const initializeInMemoryStorage = (): Experience[] => {
+  if (experiencesCache.length === 0) {
     try {
-      // Prima verifichiamo se ci sono dati nel localStorage
+      // Check if there are data in localStorage
       const storedData = localStorage.getItem('experiences');
       if (storedData) {
         const parsedData = JSON.parse(storedData);
-        experiencesData = ensureNumericValues(parsedData);
+        experiencesCache = ensureNumericValues(parsedData);
       } else {
-        experiencesData = ensureNumericValues([...initialData]);
-        // Salva subito nel localStorage
-        localStorage.setItem('experiences', JSON.stringify(experiencesData));
+        experiencesCache = ensureNumericValues([...initialData]);
+        // Save to localStorage immediately
+        localStorage.setItem('experiences', JSON.stringify(experiencesCache));
       }
     } catch (error) {
       console.error('Error initializing data:', error);
-      experiencesData = [];
+      experiencesCache = [];
     }
   }
-  return experiencesData;
+  return experiencesCache;
 };
 
-// Get experiences from the in-memory storage or Supabase
-export const getExperiences = (): Experience[] => {
-  // Per ora usiamo solo il local storage
-  if (CONFIG.dataStore === 'local') {
-    return initializeInMemoryStorage();
+// Get experiences from Supabase or localStorage
+export const getExperiences = async (): Promise<Experience[]> => {
+  if (CONFIG.dataStore === 'supabase') {
+    try {
+      const supabaseExperiences = await fetchSupabaseExperiences();
+      if (supabaseExperiences.length > 0) {
+        // Update cache
+        experiencesCache = ensureNumericValues(supabaseExperiences);
+        return experiencesCache;
+      } else {
+        // If Supabase has no data, try to load from localStorage or initial data
+        return initializeInMemoryStorage();
+      }
+    } catch (error) {
+      console.error('Error fetching from Supabase, falling back to local storage:', error);
+      return initializeInMemoryStorage();
+    }
   }
-  // In futuro questo potrebbe essere una chiamata a Supabase
+  
+  // If not using Supabase, use localStorage
   return initializeInMemoryStorage();
 };
 
-// Save experiences to storage and notify components
-export const saveExperiences = (experiences: Experience[]): void => {
+// For backward compatibility, provide a sync version that returns cached data
+// or fetches new data if cache is empty
+export const getExperiencesSync = (): Experience[] => {
+  if (experiencesCache.length > 0) {
+    return experiencesCache;
+  }
+  
+  // Initialize from localStorage if cache is empty
+  return initializeInMemoryStorage();
+};
+
+// Save experiences to Supabase or localStorage
+export const saveExperiences = async (experiences: Experience[]): Promise<void> => {
   try {
     // Ensure numeric values
     const validatedExperiences = ensureNumericValues(experiences);
     
-    // Update in-memory storage
-    experiencesData = [...validatedExperiences];
+    // Update in-memory cache
+    experiencesCache = [...validatedExperiences];
     
-    // Salva nel localStorage
-    localStorage.setItem('experiences', JSON.stringify(experiencesData));
+    // Save to the appropriate data store
+    if (CONFIG.dataStore === 'supabase') {
+      // For Supabase, we need to handle each experience individually
+      // This is a simplistic approach - in a real app, you might want to batch these operations
+      for (const experience of validatedExperiences) {
+        await updateExperienceById(experience);
+      }
+    } else {
+      // Save to localStorage
+      localStorage.setItem('experiences', JSON.stringify(experiencesCache));
+    }
     
     // Dispatch an event to notify components about the update
     window.dispatchEvent(new Event('experiencesUpdated'));
     
-    console.log('Updated experiences in memory:', experiencesData);
+    console.log('Updated experiences:', experiencesCache);
   } catch (error) {
     console.error('Error saving experiences:', error);
   }
 };
 
 // Add a new experience
-export const addExperience = (experience: Experience): void => {
-  const experiences = getExperiences();
-  experiences.push(experience);
-  saveExperiences(experiences);
-  console.log('Added new experience:', experience);
+export const addExperience = async (experience: Experience): Promise<void> => {
+  try {
+    if (CONFIG.dataStore === 'supabase') {
+      await insertExperience(experience);
+    }
+    
+    // Update local cache
+    const experiences = getExperiencesSync();
+    experiences.push(experience);
+    
+    if (CONFIG.dataStore === 'local') {
+      localStorage.setItem('experiences', JSON.stringify(experiences));
+    }
+    
+    experiencesCache = experiences;
+    
+    // Notify components
+    window.dispatchEvent(new Event('experiencesUpdated'));
+    console.log('Added new experience:', experience);
+  } catch (error) {
+    console.error('Error adding experience:', error);
+  }
 };
 
 // Update an existing experience
-export const updateExperience = (experience: Experience): void => {
-  const experiences = getExperiences();
-  const index = experiences.findIndex(exp => exp.id === experience.id);
-  if (index !== -1) {
-    experiences[index] = experience;
-    saveExperiences(experiences);
-    console.log('Updated experience:', experience);
-  } else {
-    console.error(`Experience with ID ${experience.id} not found.`);
+export const updateExperience = async (experience: Experience): Promise<void> => {
+  try {
+    const experiences = getExperiencesSync();
+    const index = experiences.findIndex(exp => exp.id === experience.id);
+    
+    if (index !== -1) {
+      experiences[index] = experience;
+      
+      // Update in Supabase if configured
+      if (CONFIG.dataStore === 'supabase') {
+        await updateExperienceById(experience);
+      }
+      
+      // Update local cache and localStorage
+      experiencesCache = experiences;
+      
+      if (CONFIG.dataStore === 'local') {
+        localStorage.setItem('experiences', JSON.stringify(experiences));
+      }
+      
+      // Notify components
+      window.dispatchEvent(new Event('experiencesUpdated'));
+      console.log('Updated experience:', experience);
+    } else {
+      console.error(`Experience with ID ${experience.id} not found.`);
+    }
+  } catch (error) {
+    console.error('Error updating experience:', error);
   }
 };
 
 // Delete an experience
-export const deleteExperience = (id: string): void => {
-  const experiences = getExperiences();
-  const filteredExperiences = experiences.filter(exp => exp.id !== id);
-  if (filteredExperiences.length < experiences.length) {
-    saveExperiences(filteredExperiences);
-    console.log('Deleted experience with ID:', id);
-  } else {
-    console.error(`Experience with ID ${id} not found.`);
+export const deleteExperience = async (id: string): Promise<void> => {
+  try {
+    const experiences = getExperiencesSync();
+    const filteredExperiences = experiences.filter(exp => exp.id !== id);
+    
+    if (filteredExperiences.length < experiences.length) {
+      // Delete from Supabase if configured
+      if (CONFIG.dataStore === 'supabase') {
+        await deleteExperienceById(id);
+      }
+      
+      // Update local cache and localStorage
+      experiencesCache = filteredExperiences;
+      
+      if (CONFIG.dataStore === 'local') {
+        localStorage.setItem('experiences', JSON.stringify(filteredExperiences));
+      }
+      
+      // Notify components
+      window.dispatchEvent(new Event('experiencesUpdated'));
+      console.log('Deleted experience with ID:', id);
+    } else {
+      console.error(`Experience with ID ${id} not found.`);
+    }
+  } catch (error) {
+    console.error('Error deleting experience:', error);
   }
 };
 
 // Toggle an experience's status (enabled/disabled)
-export const toggleExperienceStatus = (id: string): void => {
-  const experiences = getExperiences();
-  const index = experiences.findIndex(exp => exp.id === id);
-  if (index !== -1) {
-    experiences[index].enabled = !experiences[index].enabled;
-    saveExperiences(experiences);
-    console.log('Toggled experience status:', id, experiences[index].enabled);
-  } else {
-    console.error(`Experience with ID ${id} not found.`);
+export const toggleExperienceStatus = async (id: string): Promise<void> => {
+  try {
+    const experiences = getExperiencesSync();
+    const index = experiences.findIndex(exp => exp.id === id);
+    
+    if (index !== -1) {
+      const updatedExperience = {
+        ...experiences[index],
+        enabled: !experiences[index].enabled
+      };
+      
+      experiences[index] = updatedExperience;
+      
+      // Update in Supabase if configured
+      if (CONFIG.dataStore === 'supabase') {
+        await updateExperienceById(updatedExperience);
+      }
+      
+      // Update local cache and localStorage
+      experiencesCache = experiences;
+      
+      if (CONFIG.dataStore === 'local') {
+        localStorage.setItem('experiences', JSON.stringify(experiences));
+      }
+      
+      // Notify components
+      window.dispatchEvent(new Event('experiencesUpdated'));
+      console.log('Toggled experience status:', id, updatedExperience.enabled);
+    } else {
+      console.error(`Experience with ID ${id} not found.`);
+    }
+  } catch (error) {
+    console.error('Error toggling experience status:', error);
   }
 };
 
 // Get an experience by ID
-export const getExperienceById = (id: string): Experience | undefined => {
-  const experiences = getExperiences();
+export const getExperienceById = async (id: string): Promise<Experience | undefined> => {
+  try {
+    if (CONFIG.dataStore === 'supabase') {
+      const { data, error } = await supabase
+        .from('experiences')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error || !data) {
+        console.error(`Error fetching experience with ID ${id}:`, error);
+        // Try local cache as fallback
+        const cachedExperiences = getExperiencesSync();
+        return cachedExperiences.find(exp => exp.id === id);
+      }
+      
+      return data;
+    }
+    
+    // If not using Supabase, use local cache
+    const experiences = getExperiencesSync();
+    return experiences.find(exp => exp.id === id);
+  } catch (error) {
+    console.error(`Error fetching experience with ID ${id}:`, error);
+    return undefined;
+  }
+};
+
+// Synchronous version for backward compatibility
+export const getExperienceByIdSync = (id: string): Experience | undefined => {
+  const experiences = getExperiencesSync();
   return experiences.find(exp => exp.id === id);
 };
 
 // Export experiences as JSON string
-export const exportExperiencesAsJson = (): string => {
-  return JSON.stringify(experiencesData, null, 2);
+export const exportExperiencesAsJson = async (): Promise<string> => {
+  let experiences: Experience[];
+  
+  if (CONFIG.dataStore === 'supabase') {
+    experiences = await getExperiences();
+  } else {
+    experiences = getExperiencesSync();
+  }
+  
+  return JSON.stringify(experiences, null, 2);
 };
 
-// Prepara un contenuto per la visualizzazione, gestendo gli elenchi puntati
+// Import experiences from JSON string
+export const importExperiencesFromJson = async (jsonString: string): Promise<boolean> => {
+  try {
+    const experiences = JSON.parse(jsonString) as Experience[];
+    
+    if (!Array.isArray(experiences)) {
+      throw new Error('Invalid format: expected an array of experiences');
+    }
+    
+    // Validate each experience has required fields
+    experiences.forEach(exp => {
+      if (!exp.id || !exp.translations || !exp.translations.en || !exp.translations.it) {
+        throw new Error('Invalid experience format: missing required fields');
+      }
+    });
+    
+    // Import to Supabase if configured
+    if (CONFIG.dataStore === 'supabase') {
+      const success = await importSupabaseExperiences(experiences);
+      if (!success) {
+        return false;
+      }
+    }
+    
+    // Update local cache
+    experiencesCache = experiences;
+    
+    // Update localStorage if using local storage
+    if (CONFIG.dataStore === 'local') {
+      localStorage.setItem('experiences', JSON.stringify(experiences));
+    }
+    
+    // Notify components
+    window.dispatchEvent(new Event('experiencesUpdated'));
+    
+    return true;
+  } catch (error) {
+    console.error('Error importing experiences:', error);
+    return false;
+  }
+};
+
+// Prepare content for display, handling bullet points
 export const formatContent = (content: string): string => {
   if (!content) return '';
   
-  // Gestiamo il contenuto HTML direttamente se contiene già tag HTML
+  // Handle HTML content directly if it contains HTML tags
   if (content.includes('<ul>') || content.includes('<ol>')) {
     return content;
   }
@@ -147,40 +346,40 @@ export const formatContent = (content: string): string => {
   let formattedContent = '';
   let inList = false;
   
-  // Processiamo il contenuto riga per riga
+  // Process content line by line
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i].trim();
     
-    // Controlla se la riga è un elemento di lista
+    // Check if the line is a list item
     if (line.startsWith('* ') || line.startsWith('- ')) {
-      // Se non siamo già in una lista, apriamo un tag <ul>
+      // If not already in a list, open a <ul> tag
       if (!inList) {
         formattedContent += '<ul>';
         inList = true;
       }
       
-      // Rimuovi il marker e aggiungi il tag <li>
+      // Remove the marker and add the <li> tag
       line = line.replace(/^[*-]\s/, '');
       formattedContent += `<li>${line}</li>`;
     } else if (line.match(/^\d+\.\s/) || line.match(/^\d+\)\s/)) {
-      // Se è una lista numerata
-      // Se non siamo già in una lista, apriamo un tag <ol>
+      // If it's a numbered list
+      // If not already in a list, open an <ol> tag
       if (!inList) {
         formattedContent += '<ol>';
         inList = true;
       }
       
-      // Rimuovi il marker e aggiungi il tag <li>
+      // Remove the marker and add the <li> tag
       line = line.replace(/^\d+[\.\)]\s/, '');
       formattedContent += `<li>${line}</li>`;
     } else {
-      // Se non è un elemento di lista ma eravamo in una lista, chiudiamo la lista
+      // If not a list item but were in a list, close the list
       if (inList) {
         formattedContent += inList ? '</ul>' : '</ol>';
         inList = false;
       }
       
-      // Aggiungi la riga normale con break
+      // Add the normal line with break
       if (line) {
         formattedContent += line + '<br>';
       } else {
@@ -189,10 +388,36 @@ export const formatContent = (content: string): string => {
     }
   }
   
-  // Se siamo ancora in una lista alla fine, chiudiamola
+  // If we're still in a list at the end, close it
   if (inList) {
     formattedContent += '</ul>';
   }
   
   return formattedContent;
+};
+
+// Initialize data from Supabase if not already populated
+export const initializeSupabaseData = async (): Promise<void> => {
+  if (CONFIG.dataStore === 'supabase') {
+    try {
+      // Check if Supabase has data
+      const supabaseExperiences = await fetchSupabaseExperiences();
+      
+      // If Supabase is empty but we have local data, push it to Supabase
+      if (supabaseExperiences.length === 0) {
+        const localExperiences = initializeInMemoryStorage();
+        
+        if (localExperiences.length > 0) {
+          console.log('Initializing Supabase with local data...');
+          await importSupabaseExperiences(localExperiences);
+        } else {
+          // If no local data either, use initial data
+          console.log('Initializing Supabase with default data...');
+          await importSupabaseExperiences(initialData);
+        }
+      }
+    } catch (error) {
+      console.error('Error initializing Supabase data:', error);
+    }
+  }
 };

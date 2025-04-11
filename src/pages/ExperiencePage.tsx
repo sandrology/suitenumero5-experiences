@@ -20,32 +20,46 @@ const ExperiencePage = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   
   useEffect(() => {
-    if (id) {
-      // Carica l'esperienza
-      const foundExperience = getExperienceById(id);
-      
-      if (foundExperience) {
-        setExperience(foundExperience);
-        
-        // Carica le recensioni
-        const experienceReviews = [...foundExperience.reviews, ...getReviews(id)];
-        setReviews(experienceReviews);
+    const fetchExperience = async () => {
+      if (id) {
+        setLoading(true);
+        try {
+          // Load the experience
+          const foundExperience = await getExperienceById(id);
+          
+          if (foundExperience) {
+            setExperience(foundExperience);
+            
+            // Load reviews
+            const experienceReviews = [...foundExperience.reviews, ...getReviews(id)];
+            setReviews(experienceReviews);
+          }
+        } catch (error) {
+          console.error('Error loading experience:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to load the experience',
+            variant: 'destructive',
+          });
+        } finally {
+          setLoading(false);
+        }
       }
-      
-      setLoading(false);
-    }
-  }, [id]);
+    };
+    
+    fetchExperience();
+  }, [id, toast]);
   
   const handleReviewAdded = (newReview: Review) => {
     if (id) {
-      // Aggiungi la recensione
+      // Add the review
       const success = addReview(id, newReview);
       
       if (success) {
-        // Aggiorna lo stato locale
+        // Update local state
         setReviews(prevReviews => [...prevReviews, newReview]);
         
-        // Aggiorna anche l'esperienza locale se necessario
+        // Update the experience local state if needed
         if (experience) {
           setExperience({
             ...experience,
