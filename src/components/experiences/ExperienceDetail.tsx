@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 
 interface ExperienceDetailProps {
   experience: Experience;
-  formattedContent?: string; // Aggiungiamo questa prop
+  formattedContent?: string;
 }
 
 const ExperienceDetail: React.FC<ExperienceDetailProps> = ({ experience, formattedContent }) => {
@@ -45,7 +45,7 @@ const ExperienceDetail: React.FC<ExperienceDetailProps> = ({ experience, formatt
               <span>{experience.location}</span>
               <div className="ml-4 flex items-center">
                 <Star className="h-4 w-4 text-accent fill-accent" />
-                <span className="ml-1">{experience.rating} (120 reviews)</span>
+                <span className="ml-1">{experience.rating} ({experience.reviews?.length || 0} reviews)</span>
               </div>
             </div>
           </div>

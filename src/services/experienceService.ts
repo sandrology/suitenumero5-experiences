@@ -138,21 +138,46 @@ export const exportExperiencesAsJson = (): string => {
 export const formatContent = (content: string): string => {
   if (!content) return '';
   
-  // Mantieni gli a capo e converti le liste puntate con * in HTML
-  let formattedContent = content
-    .replace(/\n\* /g, '\n<li>')
-    .replace(/\n\*/g, '\n<li>')
-    .replace(/\n- /g, '\n<li>')
-    .replace(/\n-/g, '\n<li>');
+  // Salviamo gli a capo originali
+  const lines = content.split('\n');
+  let formattedContent = '';
+  let inList = false;
+  
+  // Processiamo il contenuto riga per riga
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].trim();
     
-  // Se ci sono <li> aggiungi i tag <ul> e </ul>
-  if (formattedContent.includes('<li>')) {
-    formattedContent = formattedContent.replace(/(<li>.*?)(\n\n|\n(?!\s*<li>)|$)/gs, '<ul>$1</ul>$2');
-    formattedContent = formattedContent.replace(/<li>(.*?)(?=<li>|<\/ul>)/g, '<li>$1</li>');
+    // Controlla se la riga è un elemento di lista
+    if (line.startsWith('* ') || line.startsWith('- ')) {
+      // Se non siamo già in una lista, apriamo un tag <ul>
+      if (!inList) {
+        formattedContent += '<ul>';
+        inList = true;
+      }
+      
+      // Rimuovi il marker e aggiungi il tag <li>
+      line = line.replace(/^[*-]\s/, '');
+      formattedContent += `<li>${line}</li>`;
+    } else {
+      // Se non è un elemento di lista ma eravamo in una lista, chiudiamo la lista
+      if (inList) {
+        formattedContent += '</ul>';
+        inList = false;
+      }
+      
+      // Aggiungi la riga normale con break
+      if (line) {
+        formattedContent += line + '<br>';
+      } else {
+        formattedContent += '<br>';
+      }
+    }
   }
   
-  // Converti i \n rimanenti in <br>
-  formattedContent = formattedContent.replace(/\n/g, '<br>');
+  // Se siamo ancora in una lista alla fine, chiudiamola
+  if (inList) {
+    formattedContent += '</ul>';
+  }
   
   return formattedContent;
 };

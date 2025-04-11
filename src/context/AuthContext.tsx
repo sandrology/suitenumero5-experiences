@@ -1,56 +1,59 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ADMIN_CREDENTIALS } from '../config/auth';
 
+// Define the shape of the auth context
 interface AuthContextType {
-  isLoggedIn: boolean;
-  login: (username: string, password: string) => boolean;
+  isAuthenticated: boolean;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create the auth context with default values
+const AuthContext = createContext<AuthContextType>({
+  isAuthenticated: false,
+  login: async () => false,
+  logout: () => {},
+});
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+// Custom hook to use the auth context
+export const useAuth = () => useContext(AuthContext);
 
+// Auth provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  
-  // Check localStorage for login status on initial load with a more reliable key
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  // Check for existing authentication in localStorage on mount
   useEffect(() => {
-    const storedLoginStatus = localStorage.getItem('adminSessionActive');
-    if (storedLoginStatus === 'true') {
-      setIsLoggedIn(true);
+    const storedAuth = localStorage.getItem('isAuthenticated');
+    if (storedAuth === 'true') {
+      setIsAuthenticated(true);
     }
   }, []);
 
-  const login = (username: string, password: string): boolean => {
-    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-      setIsLoggedIn(true);
-      // Store login state in localStorage with a more descriptive key
-      localStorage.setItem('adminSessionActive', 'true');
-      // Set a cookie as additional persistence method
-      document.cookie = "adminLoggedIn=true; path=/; max-age=31536000"; // 1 year expiration
+  // Mock login function
+  const login = async (username: string, password: string): Promise<boolean> => {
+    // Hard-coded credentials for demo purposes
+    if (username === 'admin' && password === 'password') {
+      setIsAuthenticated(true);
+      // Store authentication state in localStorage to persist across sessions
+      localStorage.setItem('isAuthenticated', 'true');
       return true;
     }
     return false;
   };
 
+  // Logout function
   const logout = () => {
-    setIsLoggedIn(false);
-    localStorage.removeItem('adminSessionActive');
-    // Clear the cookie on logout
-    document.cookie = "adminLoggedIn=; path=/; max-age=0";
+    setIsAuthenticated(false);
+    // Remove authentication state from localStorage
+    localStorage.removeItem('isAuthenticated');
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
+export default AuthContext;

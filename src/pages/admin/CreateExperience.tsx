@@ -18,7 +18,7 @@ const CreateExperience = () => {
     // Create a new experience with a unique ID
     const newExperience: Experience = {
       id: uuidv4(),
-      enabled: true, // Ensure new experiences are enabled by default
+      enabled: experienceData.enabled ?? true,
       images: experienceData.images?.length ? experienceData.images : [DEFAULT_IMAGE],
       translations: experienceData.translations!,
       price: experienceData.price ?? 0,
@@ -26,7 +26,7 @@ const CreateExperience = () => {
       location: experienceData.location ?? '',
       rating: experienceData.rating ?? 5.0,
       maxPeople: experienceData.maxPeople ?? 10,
-      reviews: [], // Initialize with empty reviews array
+      reviews: experienceData.reviews?.length ? experienceData.reviews : [], 
     };
     
     // Add to in-memory storage

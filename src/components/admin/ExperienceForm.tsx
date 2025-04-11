@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import RichTextEditor from './RichTextEditor';
 import { Experience } from '../../types/experience';
 import { useLanguage } from '../../context/LanguageContext';
+import ReviewsManagement from './ReviewsManagement';
 
 interface ExperienceFormProps {
   experience?: Experience;
@@ -38,6 +39,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
     location: experience?.location ?? '',
     rating: experience?.rating ?? 5.0,
     maxPeople: experience?.maxPeople ?? 10,
+    reviews: experience?.reviews ?? [],
   });
 
   const handleChange = (
@@ -80,6 +82,10 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
     setFormData((prev) => ({ ...prev, images: newImages }));
   };
 
+  const handleReviewsChange = (updatedReviews) => {
+    setFormData((prev) => ({ ...prev, reviews: updatedReviews }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -112,6 +118,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
           <TabsTrigger value="english">{t('englishTab')}</TabsTrigger>
           <TabsTrigger value="italian">{t('italianTab')}</TabsTrigger>
           <TabsTrigger value="details">{t('details')}</TabsTrigger>
+          <TabsTrigger value="reviews">{t('reviews')}</TabsTrigger>
         </TabsList>
 
         {/* English Content */}
@@ -193,7 +200,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Price ($)
+                Price (€)
               </label>
               <input
                 type="number"
@@ -290,6 +297,14 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
               Add Image
             </button>
           </div>
+        </TabsContent>
+
+        {/* Reviews Tab */}
+        <TabsContent value="reviews">
+          <ReviewsManagement 
+            reviews={formData.reviews || []} 
+            onReviewsChange={handleReviewsChange}
+          />
         </TabsContent>
       </Tabs>
 
