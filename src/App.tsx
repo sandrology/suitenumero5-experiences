@@ -21,9 +21,9 @@ const queryClient = new QueryClient();
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  const { isLoggedIn } = useAuth();
+  const { isAuthenticated } = useAuth();
   
-  if (!isLoggedIn) {
+  if (!isAuthenticated) {
     return <Navigate to="/admin/login" replace />;
   }
   

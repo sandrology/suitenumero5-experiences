@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { t, language, setLanguage } = useLanguage();
-  const { isLoggedIn, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const isAdminPage = location.pathname.includes('/admin');
 
@@ -50,7 +50,7 @@ const Navbar = () => {
               <span>{language.toUpperCase()}</span>
             </button>
             
-            {isLoggedIn && isAdminPage ? (
+            {isAuthenticated && isAdminPage ? (
               <button 
                 onClick={handleLogout} 
                 className="flex items-center text-gray-600 hover:text-red-500"
@@ -90,7 +90,7 @@ const Navbar = () => {
             >
               {t('home')}
             </Link>
-            {isLoggedIn && isAdminPage ? (
+            {isAuthenticated && isAdminPage ? (
               <button 
                 onClick={() => {
                   handleLogout();
