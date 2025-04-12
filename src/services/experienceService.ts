@@ -87,7 +87,7 @@ export const getExperiences = async (): Promise<Experience[]> => {
 // or fetches new data if cache is empty
 export const getExperiencesSync = (): Experience[] => {
   if (experiencesCache.length > 0) {
-    return experiencesCache;
+    return [...experiencesCache];
   }
   
   // Trigger async loading and return empty array for now
@@ -136,20 +136,23 @@ export const saveExperiences = async (experiences: Experience[]): Promise<boolea
 // Add a new experience
 export const addExperience = async (experience: Experience): Promise<boolean> => {
   try {
+    // Ensure the new experience has properly formatted numeric values
+    const formattedExperience = ensureNumericValues([experience])[0];
+    
     // Update local cache
     const experiences = [...experiencesCache];
-    experiences.push(experience);
+    experiences.push(formattedExperience);
     experiencesCache = experiences;
     
     // Save to Supabase if configured
     if (dataConfig.mode === 'supabase') {
       await initializeSchema();
-      await insertExperience(experience);
+      await insertExperience(formattedExperience);
     }
     
     // Notify components
     window.dispatchEvent(new Event('experiencesUpdated'));
-    console.log('Added new experience:', experience);
+    console.log('Added new experience:', formattedExperience);
     
     return true;
   } catch (error) {
@@ -161,16 +164,19 @@ export const addExperience = async (experience: Experience): Promise<boolean> =>
 // Update an existing experience
 export const updateExperience = async (experience: Experience): Promise<boolean> => {
   try {
+    // Ensure the experience has properly formatted numeric values
+    const formattedExperience = ensureNumericValues([experience])[0];
+    
     const experiences = [...experiencesCache];
-    const index = experiences.findIndex(exp => exp.id === experience.id);
+    const index = experiences.findIndex(exp => exp.id === formattedExperience.id);
     
     if (index !== -1) {
-      experiences[index] = experience;
+      experiences[index] = formattedExperience;
       
       // Update in Supabase if configured
       if (dataConfig.mode === 'supabase') {
         await initializeSchema();
-        await updateExperienceById(experience);
+        await updateExperienceById(formattedExperience);
       }
       
       // Update local cache
@@ -178,11 +184,11 @@ export const updateExperience = async (experience: Experience): Promise<boolean>
       
       // Notify components
       window.dispatchEvent(new Event('experiencesUpdated'));
-      console.log('Updated experience:', experience);
+      console.log('Updated experience:', formattedExperience);
       
       return true;
     } else {
-      console.error(`Experience with ID ${experience.id} not found.`);
+      console.error(`Experience with ID ${formattedExperience.id} not found.`);
       return false;
     }
   } catch (error) {

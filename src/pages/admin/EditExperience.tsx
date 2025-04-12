@@ -64,15 +64,28 @@ const EditExperience = () => {
     };
     
     // Update in database
-    updateExperience(updatedExperience);
-    
-    toast({
-      title: t('experienceUpdated'),
-      description: t('experienceUpdatedDesc'),
-    });
-    
-    // Redirect to admin dashboard
-    navigate('/admin');
+    updateExperience(updatedExperience)
+      .then(success => {
+        if (success) {
+          toast({
+            title: t('experienceUpdated'),
+            description: t('experienceUpdatedDesc'),
+          });
+          
+          // Redirect to admin dashboard
+          navigate('/admin');
+        } else {
+          throw new Error('Failed to update experience');
+        }
+      })
+      .catch(error => {
+        console.error('Error updating experience:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to update experience',
+          variant: 'destructive'
+        });
+      });
   };
 
   if (loading) {

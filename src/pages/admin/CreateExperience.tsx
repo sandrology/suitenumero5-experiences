@@ -21,26 +21,39 @@ const CreateExperience = () => {
       enabled: experienceData.enabled ?? true,
       images: experienceData.images?.length ? experienceData.images : [DEFAULT_IMAGE],
       translations: experienceData.translations!,
-      price: experienceData.price ?? 0,
+      price: typeof experienceData.price === 'string' ? parseFloat(experienceData.price) || 0 : Number(experienceData.price ?? 0),
       duration: experienceData.duration ?? '',
       location: experienceData.location ?? '',
-      rating: experienceData.rating ?? 5.0,
-      maxPeople: experienceData.maxPeople ?? 10,
+      rating: typeof experienceData.rating === 'string' ? parseFloat(experienceData.rating) || 5.0 : Number(experienceData.rating ?? 5.0),
+      maxPeople: typeof experienceData.maxPeople === 'string' ? parseInt(experienceData.maxPeople) || 10 : Number(experienceData.maxPeople ?? 10),
       reviews: experienceData.reviews?.length ? experienceData.reviews : [], 
     };
     
     // Add to in-memory storage
-    addExperience(newExperience);
-    
-    console.log('Created new experience:', newExperience);
-    
-    toast({
-      title: t('experienceCreated'),
-      description: t('experienceCreatedDesc'),
-    });
-    
-    // Redirect to admin dashboard
-    navigate('/admin');
+    addExperience(newExperience)
+      .then(success => {
+        if (success) {
+          console.log('Created new experience:', newExperience);
+          
+          toast({
+            title: t('experienceCreated'),
+            description: t('experienceCreatedDesc'),
+          });
+          
+          // Redirect to admin dashboard
+          navigate('/admin');
+        } else {
+          throw new Error('Failed to create experience');
+        }
+      })
+      .catch(error => {
+        console.error(error);
+        toast({
+          title: 'Error',
+          description: 'Failed to create experience',
+          variant: 'destructive'
+        });
+      });
   };
 
   return (

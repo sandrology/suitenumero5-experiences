@@ -48,6 +48,18 @@ const ExperiencePage = () => {
     };
     
     fetchExperience();
+    
+    // Set up listener for experience updates
+    const handleExperiencesUpdated = () => {
+      console.log('Experiences updated event detected in Experience Page');
+      fetchExperience();
+    };
+    
+    window.addEventListener('experiencesUpdated', handleExperiencesUpdated);
+    
+    return () => {
+      window.removeEventListener('experiencesUpdated', handleExperiencesUpdated);
+    };
   }, [id, toast]);
   
   const handleReviewAdded = (newReview: Review) => {

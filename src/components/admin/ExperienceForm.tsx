@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -107,6 +108,7 @@ const ExperienceForm: React.FC<ExperienceFormProps> = ({
       return;
     }
 
+    console.log("Form data before submitting:", formData);
     onSubmit(formData);
   };
 

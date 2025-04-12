@@ -8,7 +8,6 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from "@/hooks/use-toast";
 import { 
   getExperiences,
-  getExperiencesSync,
   deleteExperience, 
   toggleExperienceStatus,
   exportExperiencesAsJson,
@@ -37,13 +36,9 @@ const AdminDashboard = () => {
       setExperiences(loadedExperiences);
     } catch (error) {
       console.error('Error loading experiences:', error);
-      // Fallback to sync method if async fails
-      const fallbackExperiences = getExperiencesSync();
-      setExperiences(fallbackExperiences);
-      
       toast({
-        title: 'Warning',
-        description: 'Unable to load experiences. Using cached data instead.',
+        title: 'Error',
+        description: 'Failed to load experiences data',
         variant: 'destructive'
       });
     } finally {
@@ -52,10 +47,12 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
+    // Initial load
     loadExperiences();
     
-    // Add custom event listener to update experiences when they change
+    // Add event listener for experience updates
     const handleExperiencesUpdated = () => {
+      console.log('Experiences updated event detected in Dashboard');
       loadExperiences();
     };
     
@@ -71,17 +68,17 @@ const AdminDashboard = () => {
       const success = await toggleExperienceStatus(id);
       
       if (success) {
-        // Update local state directly for immediate UI update
+        toast({
+          title: t('statusUpdated'),
+          description: t('statusUpdatedDesc')
+        });
+        
+        // Update the local state for immediate UI feedback
         setExperiences(prevExperiences =>
           prevExperiences.map(exp =>
             exp.id === id ? { ...exp, enabled: !exp.enabled } : exp
           )
         );
-
-        toast({
-          title: t('statusUpdated'),
-          description: t('statusUpdatedDesc')
-        });
       }
     } catch (error) {
       console.error('Error toggling status:', error);
@@ -98,15 +95,15 @@ const AdminDashboard = () => {
       const success = await deleteExperience(id);
       
       if (success) {
-        // Update local state directly
-        setExperiences(prevExperiences => 
-          prevExperiences.filter(exp => exp.id !== id)
-        );
-
         toast({
           title: t('experienceDeleted'),
           description: t('experienceDeletedDesc')
         });
+        
+        // Update the local state for immediate UI feedback
+        setExperiences(prevExperiences => 
+          prevExperiences.filter(exp => exp.id !== id)
+        );
       }
     } catch (error) {
       console.error('Error deleting experience:', error);
