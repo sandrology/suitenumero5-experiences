@@ -17,21 +17,36 @@ const EditExperience = () => {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    if (id) {
-      const foundExperience = getExperienceById(id);
-      
-      if (!foundExperience) {
-        toast({
-          title: t('experienceNotFound'),
-          description: t('experienceNotFoundDesc'),
-          variant: "destructive"
-        });
-        navigate('/admin');
-      } else {
-        setExperience(foundExperience);
+    const loadExperience = async () => {
+      if (id) {
+        try {
+          const foundExperience = await getExperienceById(id);
+          
+          if (!foundExperience) {
+            toast({
+              title: t('experienceNotFound'),
+              description: t('experienceNotFoundDesc'),
+              variant: "destructive"
+            });
+            navigate('/admin');
+          } else {
+            setExperience(foundExperience);
+          }
+        } catch (error) {
+          console.error('Error loading experience:', error);
+          toast({
+            title: 'Error',
+            description: 'Failed to load experience',
+            variant: "destructive"
+          });
+          navigate('/admin');
+        } finally {
+          setLoading(false);
+        }
       }
-    }
-    setLoading(false);
+    };
+    
+    loadExperience();
   }, [id, navigate, toast, t]);
 
   const handleUpdateExperience = (experienceData: Partial<Experience>) => {

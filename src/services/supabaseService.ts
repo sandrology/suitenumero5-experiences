@@ -3,11 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 import { Experience } from '../types/experience';
 
 // Initialize Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-placeholder-supabase-url.supabase.co';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-placeholder-supabase-key';
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase credentials. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file');
+// Console warning for missing credentials
+if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+  console.warn('Missing Supabase credentials. Using placeholder values. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
@@ -24,7 +25,15 @@ export const fetchExperiences = async (): Promise<Experience[]> => {
       return [];
     }
     
-    return data || [];
+    // Make sure numeric fields are converted properly
+    const typedData = data?.map(item => ({
+      ...item,
+      price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
+      maxPeople: typeof item.maxPeople === 'string' ? parseInt(item.maxPeople) : item.maxPeople,
+      rating: typeof item.rating === 'string' ? parseFloat(item.rating) : item.rating,
+    })) as Experience[];
+    
+    return typedData || [];
   } catch (error) {
     console.error('Unexpected error fetching experiences:', error);
     return [];
@@ -90,10 +99,18 @@ export const deleteExperienceById = async (id: string): Promise<boolean> => {
 // Import multiple experiences at once
 export const importExperiences = async (experiences: Experience[]): Promise<boolean> => {
   try {
+    // Ensure data types are correct before inserting
+    const validatedExperiences = experiences.map(exp => ({
+      ...exp,
+      price: typeof exp.price === 'string' ? parseFloat(exp.price) : exp.price,
+      maxPeople: typeof exp.maxPeople === 'string' ? parseInt(exp.maxPeople) : exp.maxPeople,
+      rating: typeof exp.rating === 'string' ? parseFloat(exp.rating) : exp.rating,
+    }));
+    
     // Using upsert to replace if exists or insert if not
     const { error } = await supabase
       .from('experiences')
-      .upsert(experiences, { onConflict: 'id' });
+      .upsert(validatedExperiences as any[], { onConflict: 'id' });
     
     if (error) {
       console.error('Error importing experiences:', error);

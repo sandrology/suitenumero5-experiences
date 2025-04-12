@@ -293,17 +293,25 @@ export const exportExperiencesAsJson = async (): Promise<string> => {
 // Import experiences from JSON string
 export const importExperiencesFromJson = async (jsonString: string): Promise<boolean> => {
   try {
-    const experiences = JSON.parse(jsonString) as Experience[];
+    const parsedData = JSON.parse(jsonString);
     
-    if (!Array.isArray(experiences)) {
+    if (!Array.isArray(parsedData)) {
       throw new Error('Invalid format: expected an array of experiences');
     }
     
-    // Validate each experience has required fields
-    experiences.forEach(exp => {
+    // Validate and normalize each experience
+    const experiences: Experience[] = parsedData.map(exp => {
       if (!exp.id || !exp.translations || !exp.translations.en || !exp.translations.it) {
         throw new Error('Invalid experience format: missing required fields');
       }
+      
+      // Ensure numeric values
+      return {
+        ...exp,
+        price: typeof exp.price === 'string' ? parseFloat(exp.price) : exp.price,
+        maxPeople: typeof exp.maxPeople === 'string' ? parseInt(exp.maxPeople) : exp.maxPeople,
+        rating: typeof exp.rating === 'string' ? parseFloat(exp.rating) : exp.rating,
+      } as Experience;
     });
     
     // Import to Supabase if configured
