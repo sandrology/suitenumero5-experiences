@@ -6,7 +6,8 @@ import {
   insertExperience,
   updateExperienceById,
   deleteExperienceById,
-  importExperiences as importSupabaseExperiences
+  importExperiences as importSupabaseExperiences,
+  initializeSchema
 } from './supabaseService';
 
 // Default image for experiences
@@ -409,6 +410,9 @@ export const formatContent = (content: string): string => {
 export const initializeSupabaseData = async (): Promise<void> => {
   if (CONFIG.dataStore === 'supabase') {
     try {
+      // Initialize the schema first
+      await initializeSchema();
+      
       // Check if Supabase has data
       const supabaseExperiences = await fetchSupabaseExperiences();
       

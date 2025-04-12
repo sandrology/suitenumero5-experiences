@@ -17,9 +17,67 @@ if (import.meta.env.DEV) {
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
+// Initialize Supabase database schema if needed
+export const initializeSchema = async (): Promise<boolean> => {
+  try {
+    // Check if experiences table exists
+    const { error: checkError } = await supabase
+      .from('experiences')
+      .select('id')
+      .limit(1);
+    
+    // If the table doesn't exist, create it
+    if (checkError && checkError.code === '42P01') { // SQL code for "relation does not exist"
+      console.log('Creating experiences table...');
+      
+      // Create the experiences table using SQL
+      const { error: createError } = await supabase.rpc('create_experiences_table');
+      
+      if (createError) {
+        console.error('Error creating experiences table with RPC:', createError);
+        
+        // Fallback: Create the table using raw SQL
+        const { error: sqlError } = await supabase.rpc('execute_sql', {
+          sql_query: `
+            CREATE TABLE IF NOT EXISTS public.experiences (
+              id TEXT PRIMARY KEY,
+              enabled BOOLEAN DEFAULT TRUE,
+              images TEXT[] DEFAULT ARRAY[]::TEXT[],
+              translations JSONB NOT NULL,
+              price NUMERIC NOT NULL,
+              duration TEXT NOT NULL,
+              location TEXT NOT NULL,
+              rating NUMERIC DEFAULT 5.0,
+              "maxPeople" INTEGER DEFAULT 10,
+              reviews JSONB DEFAULT '[]'::JSONB
+            );
+          `
+        });
+        
+        if (sqlError) {
+          console.error('Error creating experiences table with SQL:', sqlError);
+          return false;
+        }
+      }
+      
+      console.log('Experiences table created successfully');
+      return true;
+    }
+    
+    // Table already exists
+    return true;
+  } catch (error) {
+    console.error('Error initializing schema:', error);
+    return false;
+  }
+};
+
 // Experiences table operations
 export const fetchExperiences = async (): Promise<Experience[]> => {
   try {
+    // Try to initialize schema first
+    await initializeSchema();
+    
     const { data, error } = await supabase
       .from('experiences')
       .select('*');
@@ -55,6 +113,9 @@ export const insertExperience = async (experience: Experience): Promise<boolean>
       rating: Number(experience.rating)
     };
 
+    // Initialize schema if needed
+    await initializeSchema();
+
     const { error } = await supabase
       .from('experiences')
       .insert([preparedExperience]);
@@ -81,6 +142,9 @@ export const updateExperienceById = async (experience: Experience): Promise<bool
       rating: Number(experience.rating)
     };
 
+    // Initialize schema if needed
+    await initializeSchema();
+
     const { error } = await supabase
       .from('experiences')
       .update(preparedExperience)
@@ -100,6 +164,9 @@ export const updateExperienceById = async (experience: Experience): Promise<bool
 
 export const deleteExperienceById = async (id: string): Promise<boolean> => {
   try {
+    // Initialize schema if needed
+    await initializeSchema();
+    
     const { error } = await supabase
       .from('experiences')
       .delete()
@@ -120,6 +187,9 @@ export const deleteExperienceById = async (id: string): Promise<boolean> => {
 // Import multiple experiences at once
 export const importExperiences = async (experiences: Experience[]): Promise<boolean> => {
   try {
+    // Initialize schema if needed
+    await initializeSchema();
+    
     // Ensure data types are correct before inserting
     const validatedExperiences = experiences.map(exp => ({
       ...exp,
