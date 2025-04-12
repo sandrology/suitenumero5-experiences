@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Edit, Trash, Eye, EyeOff, Plus, Download, Upload } from 'lucide-react';
+import { Edit, Trash, Eye, EyeOff, Plus, Download } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import { Experience } from '../../types/experience';
 import { useLanguage } from '../../context/LanguageContext';
@@ -12,25 +12,25 @@ import {
   deleteExperience, 
   toggleExperienceStatus,
   exportExperiencesAsJson,
-  importExperiencesFromJson,
   DEFAULT_IMAGE,
   initializeSupabaseData
 } from '../../services/experienceService';
+import dataConfig from '../../config/dataConfig';
 
 const AdminDashboard = () => {
   const { t, language } = useLanguage();
   const { toast } = useToast();
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [importJson, setImportJson] = useState('');
   
   // Function to load experiences
   const loadExperiences = async () => {
     setLoading(true);
     try {
       // Initialize Supabase data if needed
-      await initializeSupabaseData();
+      if (dataConfig.mode === 'supabase') {
+        await initializeSupabaseData();
+      }
       
       // Then load experiences
       const loadedExperiences = await getExperiences();
@@ -43,7 +43,7 @@ const AdminDashboard = () => {
       
       toast({
         title: 'Warning',
-        description: 'Unable to load from database, using local data instead.',
+        description: 'Unable to load experiences. Using cached data instead.',
         variant: 'destructive'
       });
     } finally {
@@ -68,19 +68,21 @@ const AdminDashboard = () => {
 
   const handleToggleExperienceStatus = async (id: string) => {
     try {
-      await toggleExperienceStatus(id);
+      const success = await toggleExperienceStatus(id);
       
-      // Update local state directly for immediate UI update
-      setExperiences(prevExperiences =>
-        prevExperiences.map(exp =>
-          exp.id === id ? { ...exp, enabled: !exp.enabled } : exp
-        )
-      );
+      if (success) {
+        // Update local state directly for immediate UI update
+        setExperiences(prevExperiences =>
+          prevExperiences.map(exp =>
+            exp.id === id ? { ...exp, enabled: !exp.enabled } : exp
+          )
+        );
 
-      toast({
-        title: t('statusUpdated'),
-        description: t('statusUpdatedDesc')
-      });
+        toast({
+          title: t('statusUpdated'),
+          description: t('statusUpdatedDesc')
+        });
+      }
     } catch (error) {
       console.error('Error toggling status:', error);
       toast({
@@ -93,53 +95,24 @@ const AdminDashboard = () => {
 
   const handleDeleteExperience = async (id: string) => {
     try {
-      await deleteExperience(id);
+      const success = await deleteExperience(id);
       
-      // Update local state directly
-      setExperiences(prevExperiences => 
-        prevExperiences.filter(exp => exp.id !== id)
-      );
+      if (success) {
+        // Update local state directly
+        setExperiences(prevExperiences => 
+          prevExperiences.filter(exp => exp.id !== id)
+        );
 
-      toast({
-        title: t('experienceDeleted'),
-        description: t('experienceDeletedDesc')
-      });
+        toast({
+          title: t('experienceDeleted'),
+          description: t('experienceDeletedDesc')
+        });
+      }
     } catch (error) {
       console.error('Error deleting experience:', error);
       toast({
         title: 'Error',
         description: 'Failed to delete the experience',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const handleExportJson = async () => {
-    try {
-      const jsonData = await exportExperiencesAsJson();
-      
-      // For TS file export - includes the export statement
-      const formattedData = `export const experiencesData = ${jsonData};`;
-      
-      const blob = new Blob([formattedData], { type: 'application/javascript' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'experiencesData.ts';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-      toast({
-        title: t('exportSuccess'),
-        description: 'Experiences data exported successfully. Add this to your project under src/data/experiencesData.ts'
-      });
-    } catch (error) {
-      console.error('Error exporting data:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to export experiences data',
         variant: 'destructive'
       });
     }
@@ -153,7 +126,7 @@ const AdminDashboard = () => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'experiences.json';
+      link.download = 'Experience.json';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -161,7 +134,7 @@ const AdminDashboard = () => {
       
       toast({
         title: 'Export Successful',
-        description: 'Experiences data exported successfully as JSON'
+        description: 'Experiences data exported successfully as Experience.json. Place this file in the public folder of your project for the next build.'
       });
     } catch (error) {
       console.error('Error exporting JSON:', error);
@@ -171,78 +144,6 @@ const AdminDashboard = () => {
         variant: 'destructive'
       });
     }
-  };
-  
-  const handleImportModal = () => {
-    setIsImportModalOpen(true);
-  };
-  
-  const handleCloseImportModal = () => {
-    setIsImportModalOpen(false);
-    setImportJson('');
-  };
-  
-  const handleImportJsonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setImportJson(e.target.value);
-  };
-  
-  const handleImportJsonSubmit = async () => {
-    if (!importJson.trim()) {
-      toast({
-        title: 'Error',
-        description: 'Please enter valid JSON data',
-        variant: 'destructive'
-      });
-      return;
-    }
-    
-    try {
-      const success = await importExperiencesFromJson(importJson);
-      
-      if (success) {
-        handleCloseImportModal();
-        loadExperiences();
-        
-        toast({
-          title: 'Import Successful',
-          description: 'Experiences data imported successfully'
-        });
-      } else {
-        toast({
-          title: 'Import Failed',
-          description: 'Failed to import experiences data',
-          variant: 'destructive'
-        });
-      }
-    } catch (error) {
-      console.error('Error importing JSON:', error);
-      toast({
-        title: 'Error',
-        description: 'Invalid JSON format or data structure',
-        variant: 'destructive'
-      });
-    }
-  };
-  
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const jsonContent = event.target?.result as string;
-        setImportJson(jsonContent);
-      } catch (error) {
-        console.error('Error reading file:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to read the file',
-          variant: 'destructive'
-        });
-      }
-    };
-    reader.readAsText(file);
   };
 
   return (
@@ -257,26 +158,10 @@ const AdminDashboard = () => {
               <button
                 onClick={handleExportJsonRaw}
                 className="btn-secondary inline-flex items-center"
-                title="Export as raw JSON"
+                title="Export as JSON"
               >
                 <Download className="mr-2 h-4 w-4" />
                 Export JSON
-              </button>
-              <button
-                onClick={handleExportJson}
-                className="btn-secondary inline-flex items-center"
-                title="Export as TypeScript"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Export TS
-              </button>
-              <button
-                onClick={handleImportModal}
-                className="btn-secondary inline-flex items-center"
-                title="Import JSON data"
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                Import
               </button>
               <Link to="/admin/create" className="btn-primary inline-flex items-center">
                 <Plus className="mr-2 h-4 w-4" />
@@ -369,52 +254,18 @@ const AdminDashboard = () => {
               </table>
             </div>
           )}
-        </div>
-      </main>
-      
-      {/* Import Modal */}
-      {isImportModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-            <h2 className="heading-md mb-4">Import Experiences</h2>
-            
-            <div className="mb-4">
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleFileUpload}
-                className="mb-4"
-              />
-              
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                JSON Data
-              </label>
-              <textarea
-                value={importJson}
-                onChange={handleImportJsonChange}
-                rows={10}
-                className="w-full p-2 border rounded-md focus:ring-primary focus:border-primary"
-                placeholder="Paste your JSON data here..."
-              />
-            </div>
-            
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={handleCloseImportModal}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleImportJsonSubmit}
-                className="btn-primary"
-              >
-                Import
-              </button>
-            </div>
+          
+          {/* Nota informativa su come funziona il sistema */}
+          <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h3 className="font-medium text-blue-800 mb-2">Modalità dati: {dataConfig.mode === 'json' ? 'JSON File' : 'Supabase'}</h3>
+            <p className="text-blue-700 text-sm">
+              {dataConfig.mode === 'json' ? 
+                'Le modifiche apportate qui sono temporanee. Per rendere permanenti le modifiche, esporta il file JSON e sostituiscilo al file Experience.json nella cartella public prima della prossima build.' :
+                'Le modifiche vengono salvate direttamente nel database Supabase.'}
+            </p>
           </div>
         </div>
-      )}
+      </main>
     </div>
   );
 };
