@@ -1,4 +1,3 @@
-
 import { Experience } from '../types/experience';
 import { experiencesData as initialData } from '../data/experiencesData';
 import { 
@@ -26,10 +25,11 @@ let experiencesCache: Experience[] = [];
 const ensureNumericValues = (experiences: any[]): Experience[] => {
   return experiences.map(exp => ({
     ...exp,
-    price: typeof exp.price === 'string' ? parseFloat(exp.price) || 0 : exp.price,
-    maxPeople: typeof exp.maxPeople === 'string' ? parseInt(exp.maxPeople) || 0 : exp.maxPeople,
-    rating: typeof exp.rating === 'string' ? parseFloat(exp.rating) || 0 : exp.rating,
-  }));
+    price: typeof exp.price === 'string' ? parseFloat(exp.price) || 0 : Number(exp.price),
+    maxPeople: typeof exp.maxPeople === 'string' ? parseInt(exp.maxPeople) || 0 : Number(exp.maxPeople),
+    rating: typeof exp.rating === 'string' ? parseFloat(exp.rating) || 0 : Number(exp.rating),
+    reviews: Array.isArray(exp.reviews) ? exp.reviews : []
+  })) as Experience[];
 };
 
 // Initialize the in-memory storage with initial data from localStorage
@@ -299,20 +299,21 @@ export const importExperiencesFromJson = async (jsonString: string): Promise<boo
       throw new Error('Invalid format: expected an array of experiences');
     }
     
-    // Validate and normalize each experience
+    // Validate and normalize each experience - ensure we explicitly cast as Experience[] after conversion
     const experiences: Experience[] = parsedData.map(exp => {
       if (!exp.id || !exp.translations || !exp.translations.en || !exp.translations.it) {
         throw new Error('Invalid experience format: missing required fields');
       }
       
-      // Ensure numeric values
+      // Ensure numeric values are properly converted
       return {
         ...exp,
-        price: typeof exp.price === 'string' ? parseFloat(exp.price) : exp.price,
-        maxPeople: typeof exp.maxPeople === 'string' ? parseInt(exp.maxPeople) : exp.maxPeople,
-        rating: typeof exp.rating === 'string' ? parseFloat(exp.rating) : exp.rating,
-      } as Experience;
-    });
+        price: typeof exp.price === 'string' ? parseFloat(exp.price) || 0 : Number(exp.price),
+        maxPeople: typeof exp.maxPeople === 'string' ? parseInt(exp.maxPeople) || 0 : Number(exp.maxPeople),
+        rating: typeof exp.rating === 'string' ? parseFloat(exp.rating) || 0 : Number(exp.rating),
+        reviews: Array.isArray(exp.reviews) ? exp.reviews : []
+      };
+    }) as Experience[];
     
     // Import to Supabase if configured
     if (CONFIG.dataStore === 'supabase') {
@@ -417,11 +418,14 @@ export const initializeSupabaseData = async (): Promise<void> => {
         
         if (localExperiences.length > 0) {
           console.log('Initializing Supabase with local data...');
+          // Make sure we're passing an array that strictly conforms to Experience[]
           await importSupabaseExperiences(localExperiences);
         } else {
           // If no local data either, use initial data
           console.log('Initializing Supabase with default data...');
-          await importSupabaseExperiences(initialData);
+          // Make sure we're passing an array that strictly conforms to Experience[]
+          const typedInitialData = ensureNumericValues(initialData);
+          await importSupabaseExperiences(typedInitialData);
         }
       }
     } catch (error) {

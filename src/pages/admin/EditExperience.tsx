@@ -52,14 +52,18 @@ const EditExperience = () => {
   const handleUpdateExperience = (experienceData: Partial<Experience>) => {
     if (!experience || !id) return;
     
+    // Ensure numeric values are properly converted
     const updatedExperience: Experience = {
       ...experience,
       ...experienceData,
-      id: id, // Assicuriamo che l'ID rimanga lo stesso
+      id: id, // Ensure ID remains the same
+      price: typeof experienceData.price === 'string' ? parseFloat(experienceData.price) || 0 : Number(experienceData.price || experience.price),
+      maxPeople: typeof experienceData.maxPeople === 'string' ? parseInt(experienceData.maxPeople) || 0 : Number(experienceData.maxPeople || experience.maxPeople),
+      rating: typeof experienceData.rating === 'string' ? parseFloat(experienceData.rating) || 0 : Number(experienceData.rating || experience.rating),
       images: experienceData.images?.length ? experienceData.images : [DEFAULT_IMAGE],
     };
     
-    // Aggiorna nel localStorage
+    // Update in database
     updateExperience(updatedExperience);
     
     toast({
